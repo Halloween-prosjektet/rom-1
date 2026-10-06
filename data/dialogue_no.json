@@ -1,0 +1,153 @@
+{
+	"_info": "All tekst i spillet. 'who' peker på et navn i 'names' (tom = ingen navnelapp). {code} byttes ut med feilkoden fra config. 'pools' er tilfeldige replikker for ting man undersøker.",
+
+	"names": {
+		"teacher": "Lærer",
+		"student": "Deg",
+		"reception": "Resepsjonen",
+		"printer": "Skriver",
+		"system": ""
+	},
+
+	"ui": {
+		"title": "KJELLEREN",
+		"subtitle": "Elvebakken videregående skole",
+		"press_start": "Trykk for å starte",
+		"reset_room": "Tilbakestill rommet",
+		"location_school": "Elvebakken VGS\n2. etasje",
+		"location_basement": "Kjeller\nEtasje -1",
+		"end_title": "UTSKRIFT FEILET",
+		"end_text": "Hent arket fra skriveren.\nTa det med deg ned til etasje -2.",
+		"end_code_fallback": "Skriveren svarer ikke. Noter koden:\n{code}",
+		"item_key": "Nøkkel"
+	},
+
+	"lines": {
+		"intro.teacher": [
+			{"who": "teacher", "text": "Ah, der er du. Kan du gjøre meg en tjeneste?"},
+			{"who": "teacher", "text": "Jeg har sendt et dokument til skriveren, men jeg kan ikke gå fra klassen nå."},
+			{"who": "teacher", "text": "Hent det for meg, er du snill. Det haster litt."},
+			{"who": "student", "text": "Ok, jeg går nå."}
+		],
+		"intro.printer1": [
+			{"who": "printer", "text": "PAPIRSTOPP I SKUFF 2."},
+			{"who": "student", "text": "Selvfølgelig."}
+		],
+		"intro.printer2": [
+			{"who": "printer", "text": "TOM FOR TONER."},
+			{"who": "student", "text": "Den også? Seriøst..."}
+		],
+		"intro.printer3": [
+			{"who": "printer", "text": "...K..JE..LL.."},
+			{"who": "student", "text": "Hæ? Skjermen flimrer bare."},
+			{"who": "student", "text": "Jeg spør i resepsjonen."}
+		],
+		"intro.reception": [
+			{"who": "student", "text": "Hei! Ingen av skriverne virker. Vet du om det finnes en som fungerer?"},
+			{"who": "reception", "text": "Nei, de har vært nede hele dagen. Alle sammen."},
+			{"who": "reception", "text": "..."},
+			{"who": "reception", "text": "Det står en gammel skriver nede i kjelleren. Den virker visst fortsatt."},
+			{"who": "reception", "text": "Ta trappa bak resepsjonen. Helt ned."},
+			{"who": "student", "text": "Kjelleren? Jeg visste ikke engang at vi hadde en kjeller."},
+			{"who": "reception", "text": "Det er ikke mange som går ned dit lenger."}
+		],
+		"intro.basement_door": [
+			{"who": "student", "text": "Døra er kald. Det lukter støv og gammel strøm."}
+		],
+
+		"l1.arrive": [
+			{"who": "system", "text": "Døra smeller igjen bak deg."},
+			{"who": "student", "text": "Hallo? ...Lyset virker knapt her nede."}
+		],
+		"l1.stairs_locked": [
+			{"who": "student", "text": "Døra opp er låst. Den åpnet seg jo nettopp?!"}
+		],
+		"l1.corridor_sound": [
+			{"who": "system", "text": "*Noe faller i gulvet langt borte i gangen.*"},
+			{"who": "student", "text": "...Er det noen her?"}
+		],
+		"l1.corridor_end": [
+			{"who": "student", "text": "Gangen fortsetter ned. Det blir bare kaldere."}
+		],
+		"l1.storage_enter": [
+			{"who": "system", "text": "LAGER - IKKE ADGANG FOR ELEVER"},
+			{"who": "student", "text": "Noen har stablet kasser foran døra der borte. Kanskje jeg kan dytte dem unna?"}
+		],
+		"l1.archive_enter": [
+			{"who": "system", "text": "ARKIV"},
+			{"who": "student", "text": "Det er nesten helt mørkt. Hyller så langt jeg kan se."}
+		],
+		"l1.archive_whisper": [
+			{"who": "system", "text": "*Du hører papir som blas i, et sted mellom hyllene.*"}
+		],
+		"l1.door_locked": [
+			{"who": "system", "text": "Døra er låst. Et skilt sier: SKRIVERROM."},
+			{"who": "student", "text": "Nøkkelen må være her et sted i alt rotet."}
+		],
+		"l1.door_unlock": [
+			{"who": "system", "text": "Nøkkelen passer. Låsen gir etter med et klikk."}
+		],
+		"l1.box_key": [
+			{"who": "system", "text": "Under en bunke gamle prøver ligger en rusten nøkkel."},
+			{"who": "system", "text": "Merkelappen sier: SKRIVERROM K-1."}
+		],
+		"l1.box_1": [
+			{"who": "system", "text": "Overhead-ark. Hundrevis av dem."}
+		],
+		"l1.box_2": [
+			{"who": "system", "text": "En VHS-kassett merket \"Avslutning 1998\". Etiketten er revet av halvveis."}
+		],
+		"l1.box_3": [
+			{"who": "system", "text": "Elevmapper. Navnene er visket ut med tusj."}
+		],
+		"l1.box_4": [
+			{"who": "system", "text": "Tom. Bare støv... og fingeravtrykk i støvet. Ferske."}
+		],
+		"l1.box_empty": [
+			{"who": "system", "text": "Ingenting mer her."}
+		],
+		"l1.printer_room": [
+			{"who": "student", "text": "Der! En skriver. Og den har strøm."}
+		],
+		"l1.printer_use": [
+			{"who": "student", "text": "Ok... la oss få dette overstått."},
+			{"who": "printer", "text": "SKRIVER UT..."}
+		],
+		"l1.printer_error": [
+			{"who": "printer", "text": "FEIL {code}"},
+			{"who": "printer", "text": "UTSKRIFT AVBRUTT. FORTSETT TIL ETASJE -2."},
+			{"who": "student", "text": "Etasje... minus to?"},
+			{"who": "system", "text": "Skriveren spytter ut ett eneste ark."}
+		],
+		"l1.printer_done": [
+			{"who": "system", "text": "Skriveren er stille nå."}
+		]
+	},
+
+	"pools": {
+		"junk": [
+			"En gammel CRT-skjerm. Glasset er sprukket.",
+			"En stasjonær PC fra 2003. Noen har skrudd ut harddisken.",
+			"En haug med ledninger som har grodd sammen.",
+			"En knekt kontorstol. Hjulene mangler.",
+			"Et overhead-apparat. Pæra er svidd.",
+			"En eske med tastaturer. Noen av tastene er revet av.",
+			"Et gammelt kart over skolen. Kjelleren har flere etasjer enn du trodde."
+		],
+		"shelf": [
+			"Ringpermer med årstall fra før du ble født.",
+			"Hyllene er fulle av kartonger merket \"TAPT OG FUNNET\".",
+			"Støvet her har ikke vært rørt på år.",
+			"Gamle karakterprotokoller. Noen sider mangler."
+		],
+		"crate": [
+			"En tung kasse. Den kan sikkert dyttes."
+		],
+		"school_desk": [
+			"Noen har risset initialer inn i pulten."
+		],
+		"plant": [
+			"En plastplante. Den er støvete."
+		]
+	}
+}

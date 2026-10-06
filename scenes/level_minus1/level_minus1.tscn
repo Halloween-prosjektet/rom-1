@@ -1,0 +1,114 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/scenes/level_minus1.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/tiles/basement.png" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/actors/player.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/props/search_box.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/props/locked_door.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/props/final_printer.tscn" id="6"]
+[ext_resource type="Script" path="res://scripts/world/trigger_zone.gd" id="7"]
+[ext_resource type="Script" path="res://scripts/world/puzzle_room.gd" id="8"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="9"]
+
+[node name="LevelMinus1" type="Node2D"]
+script = ExtResource("1")
+map_file = "res://data/maps/level_minus1.txt"
+tile_atlas = ExtResource("2")
+ambient_color = Color(0.07, 0.07, 0.09, 1)
+ambience_sound = "ambience_drone"
+ambience_volume_db = -4.0
+location_key = "location_basement"
+stairs_text_key = "l1.stairs_locked"
+
+[node name="Entities" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Player" parent="Entities" instance=ExtResource("3")]
+position = Vector2(88, 104)
+
+[node name="KeyBox" parent="Entities" instance=ExtResource("4")]
+position = Vector2(264, 408)
+text_key = "l1.box_key"
+item_id = "key"
+
+[node name="Box1" parent="Entities" instance=ExtResource("4")]
+position = Vector2(232, 200)
+text_key = "l1.box_1"
+
+[node name="Box2" parent="Entities" instance=ExtResource("4")]
+position = Vector2(616, 200)
+text_key = "l1.box_2"
+
+[node name="Box3" parent="Entities" instance=ExtResource("4")]
+position = Vector2(392, 360)
+text_key = "l1.box_3"
+
+[node name="Box4" parent="Entities" instance=ExtResource("4")]
+position = Vector2(552, 456)
+text_key = "l1.box_4"
+
+[node name="PrinterRoomDoor" parent="Entities" instance=ExtResource("5")]
+position = Vector2(216, 440)
+
+[node name="FinalPrinter" parent="Entities" instance=ExtResource("6")]
+position = Vector2(120, 360)
+
+[node name="Triggers" type="Node2D" parent="."]
+
+[node name="CorridorSound" type="Node2D" parent="Triggers"]
+position = Vector2(448, 48)
+script = ExtResource("7")
+size_cells = Vector2i(1, 3)
+text_key = "l1.corridor_sound"
+sound = "thud"
+shake = 1.5
+
+[node name="CorridorEnd" type="Node2D" parent="Triggers"]
+position = Vector2(816, 96)
+script = ExtResource("7")
+size_cells = Vector2i(4, 1)
+text_key = "l1.corridor_end"
+
+[node name="StorageEnter" type="Node2D" parent="Triggers"]
+position = Vector2(816, 192)
+script = ExtResource("7")
+size_cells = Vector2i(4, 1)
+text_key = "l1.storage_enter"
+
+[node name="ArchiveDark" type="Node2D" parent="Triggers"]
+position = Vector2(224, 192)
+script = ExtResource("7")
+size_cells = Vector2i(27, 17)
+once = false
+light_scale = 0.42
+
+[node name="ArchiveEnter" type="Node2D" parent="Triggers"]
+position = Vector2(640, 256)
+script = ExtResource("7")
+text_key = "l1.archive_enter"
+sound = "thud"
+sound_volume_db = -10.0
+
+[node name="ArchiveWhisper" type="Node2D" parent="Triggers"]
+position = Vector2(224, 288)
+script = ExtResource("7")
+size_cells = Vector2i(27, 2)
+text_key = "l1.archive_whisper"
+sound = "whisper"
+glitch = 0.3
+
+[node name="PrinterRoom" type="Node2D" parent="Triggers"]
+position = Vector2(48, 336)
+script = ExtResource("7")
+size_cells = Vector2i(10, 8)
+text_key = "l1.printer_room"
+sound = "sting"
+sound_volume_db = -8.0
+
+[node name="StoragePuzzle" type="Node2D" parent="."]
+position = Vector2(672, 192)
+script = ExtResource("8")
+size_cells = Vector2i(13, 7)
+player_reset_cell = Vector2i(52, 12)
+
+[node name="Hud" parent="." instance=ExtResource("9")]

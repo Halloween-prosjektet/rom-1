@@ -1,0 +1,23 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/player.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/characters/student.png" id="2"]
+
+[node name="Player" type="Node2D"]
+script = ExtResource("1")
+footstep_volume_db = -18.0
+
+[node name="Sprite" type="Sprite2D" parent="."]
+texture = ExtResource("2")
+hframes = 3
+vframes = 4
+frame = 1
+offset = Vector2(0, -4)
+
+[node name="Camera" type="Camera2D" parent="."]
+position_smoothing_enabled = true
+position_smoothing_speed = 6.0
+
+[node name="Light" type="PointLight2D" parent="."]
+color = Color(1, 0.92, 0.8, 1)
+texture_scale = 0.65
