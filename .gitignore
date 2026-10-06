@@ -1,0 +1,10 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# Godot AI plugin update cache (local only)
+addons/.godot_ai_update/
+
+# Export output
+build/
+*.tmp
