@@ -12,4 +12,4 @@ text_pool = "shelf"
 [node name="Sprite" type="Sprite2D" parent="."]
 texture = ExtResource("2")
 hframes = 1
-offset = Vector2(0, -8)
+offset = Vector2(0, -4)

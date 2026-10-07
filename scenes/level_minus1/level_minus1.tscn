@@ -27,7 +27,7 @@ y_sort_enabled = true
 position = Vector2(88, 104)
 
 [node name="KeyBox" parent="Entities" instance=ExtResource("4")]
-position = Vector2(264, 408)
+position = Vector2(264, 392)
 text_key = "l1.box_key"
 item_id = "key"
 
@@ -40,7 +40,7 @@ position = Vector2(616, 200)
 text_key = "l1.box_2"
 
 [node name="Box3" parent="Entities" instance=ExtResource("4")]
-position = Vector2(392, 360)
+position = Vector2(392, 344)
 text_key = "l1.box_3"
 
 [node name="Box4" parent="Entities" instance=ExtResource("4")]
@@ -80,7 +80,10 @@ position = Vector2(224, 192)
 script = ExtResource("7")
 size_cells = Vector2i(27, 17)
 once = false
-light_scale = 0.42
+light_scale = 0.45
+use_ambient = true
+other_lights_off = true
+ambient = Color(0, 0, 0, 1)
 
 [node name="ArchiveEnter" type="Node2D" parent="Triggers"]
 position = Vector2(640, 256)

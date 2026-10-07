@@ -55,6 +55,10 @@ var _rows: PackedStringArray = []
 var _occupants: Dictionary = {}  # Vector2i -> GridEntity
 var _astar := AStarGrid2D.new()
 var _inside_triggers: Dictionary = {}
+var _canvas_modulate: CanvasModulate
+var _ambient_tween: Tween
+var _ambient_target := Color(-1, -1, -1)
+var _lights_off := false
 
 @onready var entities: Node2D = $Entities
 @onready var triggers: Node2D = get_node_or_null("Triggers")
@@ -62,9 +66,10 @@ var _inside_triggers: Dictionary = {}
 
 func _ready() -> void:
 	add_to_group("level_map")
-	var modulate_node := CanvasModulate.new()
-	modulate_node.color = ambient_color
-	add_child(modulate_node)
+	_canvas_modulate = CanvasModulate.new()
+	_canvas_modulate.color = ambient_color
+	_ambient_target = ambient_color
+	add_child(_canvas_modulate)
 
 	_load_map()
 	_build_tiles()
@@ -270,13 +275,34 @@ func _on_player_stepped(c: Vector2i) -> void:
 	if triggers == null:
 		return
 	var light_scale := 0.0
+	var ambient := ambient_color
+	var lights_off := false
 	for t in triggers.get_children():
 		if not t.has_method("contains"):
 			continue
 		var inside: bool = t.contains(c)
 		if inside and t.light_scale > 0.0:
 			light_scale = t.light_scale if light_scale == 0.0 else minf(light_scale, t.light_scale)
+		if inside and t.use_ambient:
+			ambient = t.ambient
+		if inside and t.other_lights_off:
+			lights_off = true
 		if inside and not _inside_triggers.get(t, false):
 			t.fire(player)
 		_inside_triggers[t] = inside
 	player.set_light_scale(light_scale)
+	_set_ambient(ambient)
+	if lights_off != _lights_off:
+		_lights_off = lights_off
+		for l in get_tree().get_nodes_in_group("level_light"):
+			l.set_dimmed(lights_off)
+
+
+func _set_ambient(color: Color) -> void:
+	if _ambient_target.is_equal_approx(color):
+		return
+	_ambient_target = color
+	if _ambient_tween:
+		_ambient_tween.kill()
+	_ambient_tween = create_tween()
+	_ambient_tween.tween_property(_canvas_modulate, "color", color, 1.0)

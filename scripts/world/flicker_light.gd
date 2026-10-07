@@ -13,6 +13,7 @@ var _timer := 0.0
 
 
 func _ready() -> void:
+	add_to_group("level_light")
 	texture = LightTex.radial()
 	energy = base_energy
 	_timer = randf_range(0.5, 3.0)
@@ -21,7 +22,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if not flicker:
+	if not flicker or not enabled:
 		return
 	_timer -= delta
 	if _timer <= 0.0:
@@ -40,3 +41,10 @@ func _flicker_burst() -> void:
 		tw.tween_property(self, "energy", 0.0, 0.05)
 		tw.tween_interval(randf_range(0.4, 1.2))
 	tw.tween_property(self, "energy", base_energy, 0.1)
+
+
+## Slår lyset av/på (brukes av mørke soner, f.eks. arkivet).
+func set_dimmed(dimmed: bool) -> void:
+	enabled = not dimmed
+	if dimmed and buzz:
+		buzz.stop()

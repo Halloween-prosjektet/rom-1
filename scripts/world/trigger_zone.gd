@@ -17,6 +17,12 @@ extends Node2D
 @export var once := true
 ## > 0: spillerens lysradius mens man er inne i området (mørke soner).
 @export var light_scale := 0.0
+## Overstyrer mørket (CanvasModulate) mens spilleren er inne i området.
+## Brukes bare når "use_ambient" er på. Svart = bare spillerens eget lys synes.
+@export var use_ambient := false
+@export var ambient := Color.BLACK
+## Slår av alle andre lys i nivået mens spilleren er inne i området.
+@export var other_lights_off := false
 
 var fired := false
 

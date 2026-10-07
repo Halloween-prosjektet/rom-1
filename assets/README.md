@@ -43,7 +43,7 @@ Nye NPC-er: bruk `scenes/actors/npc.tscn` og sett `sheet` til et nytt ark.
 | Fil | Størrelse | Rammer |
 |---|---|---|
 | `crate.png` | 16×16 | 1 (kasse som kan dyttes) |
-| `shelf.png` | 16×32 | 1 (høy hylle, stikker opp i ruta over) |
+| `shelf.png` | 16×24 | 1 (hylle, stikker 8 px opp i ruta over) |
 | `junk.png` | 64×16 | 4 varianter ved siden av hverandre (skjerm, PC, stol, kabler) |
 | `box.png` | 32×16 | 2: lukket, åpnet (esker man leter i) |
 | `door.png` | 32×32 | 2: lukket, åpen (16×32 hver) |

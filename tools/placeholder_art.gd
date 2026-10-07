@@ -381,13 +381,13 @@ static func _crate() -> Image:
 
 
 static func _shelf() -> Image:
-	var img := _img(16, 32)
+	var img := _img(16, 24)
 	var metal := Color8(78, 84, 90)
-	_rect(img, 1, 2, 14, 29, Color8(28, 28, 32))
-	_rect(img, 1, 2, 1, 29, metal)
-	_rect(img, 14, 2, 1, 29, metal)
+	_rect(img, 1, 2, 14, 21, Color8(28, 28, 32))
+	_rect(img, 1, 2, 1, 21, metal)
+	_rect(img, 14, 2, 1, 21, metal)
 	var colors := [Color8(120, 40, 40), Color8(45, 60, 110), Color8(150, 130, 90), Color8(60, 90, 60), Color8(110, 110, 100)]
-	for s in 4:
+	for s in 3:
 		var y := 2 + s * 7
 		_rect(img, 1, y + 6, 14, 1, _shade(metal, 1.2))
 		var x := 2
@@ -398,7 +398,7 @@ static func _shelf() -> Image:
 			_rect(img, x, y + 6 - h, mini(w, 14 - x), h, _shade(c, rng.randf_range(0.6, 0.9)))
 			x += w + (1 if rng.randf() < 0.3 else 0)
 	_rect(img, 1, 1, 14, 2, _shade(metal, 1.3))
-	_outline(img, Rect2i(0, 0, 16, 32))
+	_outline(img, Rect2i(0, 0, 16, 24))
 	return img
 
 
