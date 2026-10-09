@@ -89,8 +89,6 @@ on_error_command=["python3", "/home/pi/blink.py"]   ; valgfritt, f.eks. LED via 
 touch_controls="on"
 ```
 
-Hvis utskriften feiler, vises koden på sluttskjermen i stedet
-(`show_code_if_print_fails=true`).
 
 ## Kobling mot kontrollskriptet (StationLink)
 

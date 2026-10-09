@@ -45,17 +45,6 @@ theme_override_font_sizes/font_size = 11
 text = "Hent arket fra skriveren."
 horizontal_alignment = 1
 
-[node name="Code" type="Label" parent="." unique_id=785300649]
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_top = 132.0
-offset_bottom = 172.0
-grow_horizontal = 2
-theme_override_colors/font_color = Color(0.9, 0.75, 0.3, 1)
-theme_override_font_sizes/font_size = 11
-horizontal_alignment = 1
-
 [node name="Result" type="Label" parent="." unique_id=1900772593]
 layout_mode = 1
 anchors_preset = 10
@@ -70,8 +59,8 @@ horizontal_alignment = 1
 [node name="RestartButton" type="Button" parent="." unique_id=1750295481]
 layout_mode = 0
 offset_left = 140.0
-offset_top = 192.0
+offset_top = 150.0
 offset_right = 260.0
-offset_bottom = 222.0
+offset_bottom = 180.0
 theme_override_font_sizes/font_size = 11
 text = "Ny gruppe"

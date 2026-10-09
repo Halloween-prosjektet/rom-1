@@ -49,10 +49,10 @@ horizontal_alignment = 1
 
 [node name="TouchToggle" type="Button" parent="." unique_id=1715136128]
 layout_mode = 0
-offset_left = 236.0
-offset_top = 212.0
-offset_right = 394.0
-offset_bottom = 234.0
+offset_left = 105.0
+offset_top = 200.0
+offset_right = 295.0
+offset_bottom = 224.0
 focus_mode = 0
 theme_override_font_sizes/font_size = 9
 text = "Berøringskontroller: AV"

@@ -16,6 +16,7 @@ func _ready() -> void:
 	title.text = Text.t("title")
 	prompt.text = Text.t("press_start")
 	Sfx.play_loop("ambience_drone", -14.0)
+	_style_toggle()
 	touch_toggle.pressed.connect(_on_touch_toggle)
 	_update_touch_toggle()
 
@@ -44,4 +45,29 @@ func _on_touch_toggle() -> void:
 
 
 func _update_touch_toggle() -> void:
-	touch_toggle.text = Text.t("touch_on") if Config.touch_controls_enabled() else Text.t("touch_off")
+	var on := Config.touch_controls_enabled()
+	touch_toggle.text = Text.t("touch_on") if on else Text.t("touch_off")
+	# Grønnaktig kant når på, grå når av.
+	var border := Color(0.45, 0.75, 0.5) if on else Color(0.4, 0.4, 0.45)
+	for state: String in ["normal", "hover", "pressed"]:
+		var sb: StyleBoxFlat = touch_toggle.get_theme_stylebox(state)
+		sb.border_color = border if state != "hover" else border.lightened(0.25)
+	touch_toggle.add_theme_color_override("font_color", border.lightened(0.35))
+	touch_toggle.add_theme_color_override("font_hover_color", border.lightened(0.5))
+	touch_toggle.add_theme_color_override("font_pressed_color", border.lightened(0.5))
+
+
+## Mørk, avrundet knapp med tynn kant som passer resten av menyen.
+func _style_toggle() -> void:
+	var make := func(bg: Color) -> StyleBoxFlat:
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = bg
+		sb.set_border_width_all(1)
+		sb.set_corner_radius_all(4)
+		sb.content_margin_left = 8
+		sb.content_margin_right = 8
+		return sb
+	touch_toggle.add_theme_stylebox_override("normal", make.call(Color(0.06, 0.06, 0.08, 0.9)))
+	touch_toggle.add_theme_stylebox_override("hover", make.call(Color(0.1, 0.1, 0.13, 0.95)))
+	touch_toggle.add_theme_stylebox_override("pressed", make.call(Color(0.14, 0.14, 0.18, 1.0)))
+	touch_toggle.add_theme_stylebox_override("focus", StyleBoxEmpty.new())

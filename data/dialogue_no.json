@@ -17,7 +17,6 @@
 		"location_basement": "Kjeller\nEtasje -1",
 		"end_title": "UTSKRIFT FEILET",
 		"end_text": "Hent arket fra skriveren.\nTa det med deg ned til etasje -2.",
-		"end_code_fallback": "Skriveren svarer ikke. Noter koden:\n{code}",
 		"item_key": "Nøkkel",
 		"name_title": "Hva heter gruppa deres?",
 		"name_hint": "Navnet vises på resultatlista sammen med tiden.",

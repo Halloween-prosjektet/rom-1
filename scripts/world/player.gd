@@ -5,7 +5,7 @@ extends Actor
 
 ## false under cutscener.
 @export var controlled := true
-@export var light_scale := 0.65
+@export var light_scale := 0.95
 
 var _path: Array[Vector2i] = []
 var _pending_target := Vector2i.ZERO
