@@ -10,8 +10,7 @@
 	},
 
 	"ui": {
-		"title": "KJELLEREN",
-		"subtitle": "Elvebakken videregående skole",
+		"title": "U-5",
 		"press_start": "Trykk for å starte",
 		"reset_room": "Tilbakestill rommet",
 		"location_school": "Elvebakken VGS\n2. etasje",
@@ -27,7 +26,9 @@
 		"name_space": "Mellomrom",
 		"name_missing": "Skriv inn et navn først.",
 		"end_result": "{name}  -  tid: {time}",
-		"restart": "Ny gruppe"
+		"restart": "Ny gruppe",
+		"touch_on": "Berøringskontroller: PÅ",
+		"touch_off": "Berøringskontroller: AV"
 	},
 
 	"lines": {

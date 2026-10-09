@@ -17,8 +17,7 @@ var _reset_target: Node = null
 func _ready() -> void:
 	layer = 60
 	add_to_group("hud")
-	var mode := str(Config.get_value("display", "touch_controls", "auto"))
-	touch.visible = mode == "on" or (mode == "auto" and DisplayServer.is_touchscreen_available())
+	touch.visible = Config.touch_controls_enabled()
 	reset_button.text = Text.t("reset_room")
 	reset_button.visible = false
 	reset_button.pressed.connect(func() -> void:

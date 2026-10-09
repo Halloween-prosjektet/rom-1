@@ -42,6 +42,12 @@ Tiden måles fra man kommer ned i kjelleren (etter introen) til man bruker skriv
 - **Tastatur:** piltaster / WASD + E / Space / Enter.
 - **Gamepad / arkadeknapper:** D-pad / venstre stikke + A.
 - Inputs defineres i `scripts/autoload/game_state.gd` (`_setup_input`).
+- **Berøringskontroller av/på:** knappen nede til høyre på tittelskjermen. Valget lagres
+  i `user://station.cfg` og huskes etter omstart. Standard settes i `config/defaults.cfg`
+  (`touch_controls`).
+- **Ganghastighet:** `step_time` (sekunder per rute, lavere = raskere). Spilleren: velg
+  `Player`-noden i `scenes/actors/player.tscn` → Inspector → *Step Time*.
+  Standard for alle figurer (0.22) står i `scripts/world/actor.gd`.
 
 ## Mappestruktur
 

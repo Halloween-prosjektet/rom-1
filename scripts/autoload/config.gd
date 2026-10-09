@@ -54,3 +54,20 @@ var error_code: String:
 
 var station_id: String:
 	get: return str(get_value("station", "station_id", "rom-1"))
+
+
+## Skal D-pad/handlingsknapp vises? ("on", "off" eller "auto" i [display] touch_controls)
+func touch_controls_enabled() -> bool:
+	var mode := str(get_value("display", "touch_controls", "auto"))
+	return mode == "on" or (mode == "auto" and DisplayServer.is_touchscreen_available())
+
+
+## Brukes av knappen på tittelskjermen. Lagres i user://station.cfg så valget
+## huskes etter omstart (overstyrer defaults.cfg og station.cfg ved spillfila).
+func set_touch_controls(enabled: bool) -> void:
+	var mode := "on" if enabled else "off"
+	_cfg.set_value("display", "touch_controls", mode)
+	var user_cfg := ConfigFile.new()
+	user_cfg.load("user://" + OVERRIDE_NAME)
+	user_cfg.set_value("display", "touch_controls", mode)
+	user_cfg.save("user://" + OVERRIDE_NAME)
