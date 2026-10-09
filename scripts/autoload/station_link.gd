@@ -2,7 +2,8 @@ extends Node
 ## Kobling mot kontrollskriptet som synkroniserer alle Pi-ene.
 ##
 ## 1) Status skrives til user://station_status.json hver gang fasen endres:
-##      {"station": "rom-1", "phase": "level", "time": 1730000000}
+##      {"station": "rom-1", "phase": "level", "group": "Gruppe 3", "time_ms": 83456,
+##       "time": "01:23.4", "finished": false, "timestamp": 1730000000}
 ##    (på Pi: ~/.local/share/godot/app_userdata/<prosjektnavn>/station_status.json)
 ## 2) Lytter på UDP-port (status_port i config, standard 4242):
 ##      "RESET"  -> spillet går tilbake til tittelskjermen
@@ -33,7 +34,11 @@ func status() -> Dictionary:
 	return {
 		"station": Config.station_id,
 		"phase": GameState.phase,
-		"time": int(Time.get_unix_time_from_system()),
+		"group": GameState.player_name,
+		"time_ms": GameState.elapsed_ms(),
+		"time": GameState.format_time(GameState.elapsed_ms()),
+		"finished": GameState.timer_started() and not GameState.timer_running(),
+		"timestamp": int(Time.get_unix_time_from_system()),
 	}
 
 

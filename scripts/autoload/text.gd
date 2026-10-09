@@ -36,6 +36,9 @@ func has_lines(key: String) -> bool:
 
 
 func name_of(who: String) -> String:
+	# Spilleren får gruppenavnet sitt i dialogboksen.
+	if who == "student" and GameState.player_name != "":
+		return GameState.player_name
 	return str(_data.get("names", {}).get(who, ""))
 
 
@@ -47,7 +50,9 @@ func pool_random(pool: String) -> String:
 
 
 func _format(s: String) -> String:
-	return s.replace("{code}", Config.error_code)
+	return s.replace("{code}", Config.error_code) \
+		.replace("{name}", GameState.player_name) \
+		.replace("{time}", GameState.format_time(GameState.elapsed_ms()))
 
 
 func format(s: String) -> String:

@@ -19,7 +19,15 @@
 		"end_title": "UTSKRIFT FEILET",
 		"end_text": "Hent arket fra skriveren.\nTa det med deg ned til etasje -2.",
 		"end_code_fallback": "Skriveren svarer ikke. Noter koden:\n{code}",
-		"item_key": "Nøkkel"
+		"item_key": "Nøkkel",
+		"name_title": "Hva heter gruppa deres?",
+		"name_hint": "Navnet vises på resultatlista sammen med tiden.",
+		"name_start": "Start",
+		"name_delete": "Slett",
+		"name_space": "Mellomrom",
+		"name_missing": "Skriv inn et navn først.",
+		"end_result": "{name}  -  tid: {time}",
+		"restart": "Ny gruppe"
 	},
 
 	"lines": {
@@ -75,14 +83,15 @@
 		],
 		"l1.archive_enter": [
 			{"who": "system", "text": "ARKIV"},
-			{"who": "student", "text": "Det er nesten helt mørkt. Hyller så langt jeg kan se."}
+			{"who": "student", "text": "Det er nesten helt mørkt. Hyller så langt jeg kan se."},
+			{"who": "student", "text": "Helt innerst i gangen lyser det over en dør..."}
 		],
 		"l1.archive_whisper": [
 			{"who": "system", "text": "*Du hører papir som blas i, et sted mellom hyllene.*"}
 		],
 		"l1.door_locked": [
 			{"who": "system", "text": "Døra er låst. Et skilt sier: SKRIVERROM."},
-			{"who": "student", "text": "Nøkkelen må være her et sted i alt rotet."}
+			{"who": "student", "text": "Skriveren må være der inne. Nøkkelen ligger sikkert i en av eskene her i arkivet."}
 		],
 		"l1.door_unlock": [
 			{"who": "system", "text": "Nøkkelen passer. Låsen gir etter med et klikk."}

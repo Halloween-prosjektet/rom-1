@@ -21,6 +21,8 @@ func build_page() -> String:
 		"",
 		"   STATUS ........ FEIL",
 		"   TIDSPUNKT ..... %s" % time,
+		"   GRUPPE ........ %s" % GameState.player_name,
+		"   TID ETASJE -1 . %s" % GameState.format_time(GameState.elapsed_ms()),
 		"",
 		"   FEILKODE:",
 		"",

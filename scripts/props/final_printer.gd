@@ -18,6 +18,8 @@ func interact(_player: Node) -> void:
 		await Dialogue.play("l1.printer_done")
 		return
 	used = true
+	# Gruppa har nådd skriveren: stopp klokka.
+	GameState.stop_timer()
 	GameState.lock_input()
 	GameState.set_phase("printing")
 	await Dialogue.play("l1.printer_use")

@@ -6,6 +6,8 @@ extends LevelMap
 func _ready() -> void:
 	super()
 	GameState.set_phase("level")
+	# Tidtakingen starter når introen er ferdig og spilleren er i kjelleren.
+	GameState.start_timer()
 	_arrive()
 
 

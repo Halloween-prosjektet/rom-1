@@ -1,7 +1,7 @@
 extends Control
 ## Tittelskjerm. Trykk hvor som helst for å starte.
 
-const INTRO_SCENE := "res://scenes/intro/intro.tscn"
+const NAME_SCENE := "res://scenes/name_entry.tscn"
 
 var _started := false
 
@@ -24,11 +24,10 @@ func _process(_delta: float) -> void:
 	title.modulate.a = 0.2 if randf() < 0.01 else 1.0
 
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if _started:
 		return
 	if event.is_action_pressed("interact") or (event is InputEventScreenTouch and event.pressed):
 		_started = true
-		Sfx.play("sting", -6.0)
-		GameState.set_phase("intro")
-		Screen.change_scene(INTRO_SCENE, 1.2)
+		Sfx.play("blip", -6.0)
+		Screen.change_scene(NAME_SCENE, 0.6)

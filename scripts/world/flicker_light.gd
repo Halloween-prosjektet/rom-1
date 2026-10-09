@@ -6,6 +6,8 @@ extends PointLight2D
 ## Sjanse per sekund for at lyset begynner å blinke.
 @export var flicker_rate := 0.35
 @export var buzz_sound := "flicker"
+## Lyset forblir på i mørke soner (f.eks. lyset over døra i arkivet).
+@export var keep_on_in_dark := false
 
 var _timer := 0.0
 
@@ -45,6 +47,8 @@ func _flicker_burst() -> void:
 
 ## Slår lyset av/på (brukes av mørke soner, f.eks. arkivet).
 func set_dimmed(dimmed: bool) -> void:
+	if keep_on_in_dark:
+		return
 	enabled = not dimmed
 	if dimmed and buzz:
 		buzz.stop()

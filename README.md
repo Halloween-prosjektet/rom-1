@@ -10,12 +10,30 @@ Laget i **Godot 4.7** (Compatibility-renderer, nødvendig for Pi 4).
 ## Spillflyt
 
 1. **Tittelskjerm** – trykk for å starte.
-2. **Intro (cutscene)** – læreren ber deg skrive ut et dokument. Alle skriverne er ødelagte.
+2. **Navneskjerm** – gruppa skriver inn navnet sitt (skjermtastatur med Æ/Ø/Å, vanlig
+   tastatur virker også). Navnet brukes i dialogen, på utskriften og på resultatlista.
+3. **Intro (cutscene)** – læreren ber deg skrive ut et dokument. Alle skriverne er ødelagte.
    Resepsjonen sier at det står en skriver som virker i kjelleren.
-3. **Etasje -1** – mørke ganger, flimrende lys, et lager med kasser som må dyttes unna
-   (Sokoban-gåte med knappen "Tilbakestill rommet"), et mørkt arkiv med hyller (labyrint)
-   der nøkkelen ligger i en av eskene, en låst dør, og skriveren.
-4. **Sluttskjerm** – blir stående til kontrollskriptet sender `RESET`.
+4. **Etasje -1** – klokka oppe til høyre starter når man kommer ned. Mørke ganger,
+   flimrende lys, et lager med kasser som må dyttes unna (dytte-gåte med knappen
+   "Tilbakestill rommet") og et helt mørkt arkiv. Døra til skriverrommet lyser innerst i
+   arkivgangen, men er låst – nøkkelen ligger i en av eskene i arkivet.
+5. **Skriveren** – klokka stopper, skriveren "feiler" og den ekte skriveren skriver ut
+   feilkoden (+ gruppenavn og tid).
+6. **Sluttskjerm** – viser gruppenavn og tid. **"Ny gruppe"** starter rett på nytt for
+   neste gruppe (kontrollskriptet kan også sende `RESET`).
+
+## Resultater / tidtaking
+
+Hver gruppe som når skriveren lagres som én linje i
+`~/.local/share/godot/app_userdata/Kjelleren - Etasje -1/resultater.csv`:
+
+```
+tidspunkt,stasjon,gruppe,millisekunder,tid
+2026-10-31 18:04:12,rom-1,"Gruppe 7",60742,01:00.7
+```
+
+Tiden måles fra man kommer ned i kjelleren (etter introen) til man bruker skriveren.
 
 ## Kontroller
 
@@ -73,11 +91,12 @@ Hvis utskriften feiler, vises koden på sluttskjermen i stedet
 Laget for gruppa som lager kontrollskriptet som synkroniserer Pi-ene.
 
 - **Status-fil:** `~/.local/share/godot/app_userdata/Kjelleren - Etasje -1/station_status.json`
-  oppdateres ved hver faseendring: `{"station":"rom-1","phase":"level","time":...}`.
-  Faser: `title`, `intro`, `level`, `printing`, `done`.
+  oppdateres ved hver faseendring:
+  `{"station":"rom-1","phase":"done","group":"Gruppe 7","time_ms":60742,"time":"01:00.7","finished":true,"timestamp":...}`.
+  Faser: `title`, `name`, `intro`, `level`, `printing`, `done`.
 - **UDP-port 4242** (kan endres med `status_port`):
   - `RESET` → spillet går tilbake til tittelskjermen, svarer `OK`
-  - `STATUS` → svarer med JSON som over
+  - `STATUS` → svarer med JSON som over (med gruppenavn og tid så langt)
 
 ```bash
 echo -n STATUS | nc -u -w1 <pi-ip> 4242

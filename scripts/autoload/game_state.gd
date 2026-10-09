@@ -3,13 +3,21 @@ extends Node
 
 signal phase_changed(phase: String)
 signal items_changed
+signal timer_stopped(ms: int)
 
 const TITLE_SCENE := "res://scenes/title.tscn"
+## Alle resultater (gruppenavn + tid) legges til her, én linje per gruppe.
+const RESULTS_FILE := "user://resultater.csv"
 
-## title | intro | level | printing | done
+## title | name | intro | level | printing | done
 var phase := "title"
 var items: Dictionary = {}
 var flags: Dictionary = {}
+## Gruppenavnet fra navneskjermen.
+var player_name := ""
+
+var _timer_start_ms := -1
+var _timer_end_ms := -1
 
 ## Antall ting (dialog, cutscene ...) som blokkerer spillerens bevegelse.
 var _locks := 0
@@ -48,14 +56,70 @@ func can_move() -> bool:
 	return _locks == 0
 
 
-## Kalles av kontrollskriptet (via StationLink) for å starte på nytt.
+## Kalles av kontrollskriptet (via StationLink) eller "Ny gruppe"-knappen.
 func reset_game() -> void:
 	items.clear()
 	flags.clear()
+	player_name = ""
+	_timer_start_ms = -1
+	_timer_end_ms = -1
 	_locks = 0
 	Dialogue.close()
 	Screen.change_scene(TITLE_SCENE)
 	set_phase("title")
+
+
+# --- Tidtaking --------------------------------------------------------------
+
+## Startes når introen er ferdig (spilleren kommer ned i kjelleren).
+func start_timer() -> void:
+	_timer_start_ms = Time.get_ticks_msec()
+	_timer_end_ms = -1
+
+
+## Stoppes når spilleren bruker skriveren. Lagrer resultatet i RESULTS_FILE.
+func stop_timer() -> void:
+	if not timer_running():
+		return
+	_timer_end_ms = Time.get_ticks_msec()
+	_save_result()
+	timer_stopped.emit(elapsed_ms())
+
+
+func timer_running() -> bool:
+	return _timer_start_ms >= 0 and _timer_end_ms < 0
+
+
+func timer_started() -> bool:
+	return _timer_start_ms >= 0
+
+
+func elapsed_ms() -> int:
+	if _timer_start_ms < 0:
+		return 0
+	var end := _timer_end_ms if _timer_end_ms >= 0 else Time.get_ticks_msec()
+	return end - _timer_start_ms
+
+
+## 83456 -> "01:23.4"
+static func format_time(ms: int) -> String:
+	var tenths := ms / 100
+	return "%02d:%02d.%d" % [tenths / 600, (tenths / 10) % 60, tenths % 10]
+
+
+func _save_result() -> void:
+	var is_new := not FileAccess.file_exists(RESULTS_FILE)
+	var f := FileAccess.open(RESULTS_FILE, FileAccess.READ_WRITE if not is_new else FileAccess.WRITE)
+	if f == null:
+		push_warning("GameState: kunne ikke skrive %s" % RESULTS_FILE)
+		return
+	f.seek_end()
+	if is_new:
+		f.store_line("tidspunkt,stasjon,gruppe,millisekunder,tid")
+	var safe_name := player_name.replace('"', "'")
+	f.store_line('%s,%s,"%s",%d,%s' % [Time.get_datetime_string_from_system(false, true),
+		Config.station_id, safe_name, elapsed_ms(), format_time(elapsed_ms())])
+	print("GameState: resultat lagret - %s %s" % [player_name, format_time(elapsed_ms())])
 
 
 # Input defineres her i kode slik at alt er samlet ett sted.

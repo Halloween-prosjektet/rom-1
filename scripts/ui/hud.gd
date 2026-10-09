@@ -8,6 +8,8 @@ extends CanvasLayer
 @onready var action_button: TouchScreenButton = $Touch/Action
 @onready var reset_button: Button = $ResetButton
 @onready var item_label: Label = $ItemLabel
+## Klokke oppe til høyre: går fra man kommer ned i kjelleren til man når skriveren.
+@onready var timer_label: Label = $TimerLabel
 
 var _reset_target: Node = null
 
@@ -31,6 +33,10 @@ func _process(_delta: float) -> void:
 	var show := not Dialogue.is_open
 	dpad.modulate.a = 1.0 if show else 0.0
 	action_button.modulate.a = 1.0 if show else 0.0
+	timer_label.visible = GameState.timer_started()
+	timer_label.text = GameState.format_time(GameState.elapsed_ms())
+	if not GameState.timer_running():
+		timer_label.add_theme_color_override("font_color", Color(0.95, 0.8, 0.35))
 
 
 func set_reset_target(room: Node) -> void:
