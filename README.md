@@ -107,6 +107,35 @@ echo -n STATUS | nc -u -w1 <pi-ip> 4242
 echo -n RESET  | nc -u -w1 <pi-ip> 4242
 ```
 
+## Kontrollrommet (ControlRoom)
+
+Spillet melder fra til kontrollrom-serveren med
+[control-room](https://github.com/halloween-prosjektet/control-room)-addonen, som ligger
+som git submodule i `addons/control_room_client`. Etter kloning:
+
+```bash
+git submodule update --init
+```
+
+`scripts/autoload/control_room.gd` sender:
+
+| Når | Melding |
+| --- | --- |
+| Navneskjermen er ferdig | `register_player(gruppenavn)` |
+| Man kommer ned i kjelleren (klokka starter) | `start_game()` |
+| Man bruker skriveren (klokka stopper) | `finish_game()`, så `share("group_name", …)`, `share("finish_time", "01:00.7")` og `share("finish_time_ms", 60742)` til alle rom |
+| "Ny gruppe" / `RESET` | `leave_player()` |
+
+Adressen settes i `station.cfg` på Pi-en (tom `uri` = av):
+
+```ini
+[control_room]
+uri="ws://192.168.1.10:443"
+pi_id=1
+```
+
+Er serveren nede, legges meldingene i kø og sendes når den kommer opp igjen.
+
 ## Eksportere til Raspberry Pi 4
 
 1. Godot: *Editor › Manage Export Templates* → last ned templates for 4.7.

@@ -3,6 +3,7 @@ extends Node
 
 signal phase_changed(phase: String)
 signal items_changed
+signal timer_began
 signal timer_stopped(ms: int)
 
 const TITLE_SCENE := "res://scenes/title.tscn"
@@ -75,6 +76,7 @@ func reset_game() -> void:
 func start_timer() -> void:
 	_timer_start_ms = Time.get_ticks_msec()
 	_timer_end_ms = -1
+	timer_began.emit()
 
 
 ## Stoppes når spilleren bruker skriveren. Lagrer resultatet i RESULTS_FILE.
