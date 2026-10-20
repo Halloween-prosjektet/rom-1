@@ -5,14 +5,16 @@ extends Node
 ##
 ##   navneskjerm ferdig     -> register_player(gruppenavn)
 ##   kommer ned i kjelleren -> game_start          (samtidig som klokka starter)
-##   bruker skriveren       -> share("group_name" / "finish_time" / "finish_time_ms")
-##                             game_finish         (samtidig som klokka stopper)
+##   bruker skriveren       -> game_finish         (samtidig som klokka stopper)
 ##   "Ny gruppe" / RESET    -> player_leave, men BARE hvis gruppa ikke ble ferdig
 ##                             (ellers ville serveren slettet løpet fra resultatlista)
 ##
+## Gruppenavnet følger med som brukernavn, og tiden regner serveren ut selv, så vi
+## deler ingenting med share.
+##
 ## Rom 1 kan bare registrere en ny gruppe når rommet er tomt. Svarer serveren
 ## "room_busy" (forrige gruppe venter fortsatt på rom 2), prøver vi igjen, og holder
-## game_start / share / game_finish tilbake til registreringen er godtatt. De sendes
+## game_start / game_finish tilbake til registreringen er godtatt. De sendes
 ## da med sine opprinnelige tidsstempler, så tiden på resultatlista blir riktig.
 ##
 ## Gruppa som spiller lagres i STATE_FILE. Går strømmen midt i et spill, sier vi
@@ -131,10 +133,6 @@ func _on_timer_began() -> void:
 func _on_timer_stopped(ms: int) -> void:
 	if _group == "":
 		return
-	# Del først, så er verdiene med i player_incoming til rom 2.
-	_send_game_event({"event": "share", "key": "group_name", "value": _group, "pi": null})
-	_send_game_event({"event": "share", "key": "finish_time", "value": GameState.format_time(ms), "pi": null})
-	_send_game_event({"event": "share", "key": "finish_time_ms", "value": ms, "pi": null})
 	_send_game_event({"event": "game_finish"})
 	_finished = true
 	_set_finish_status("sending")

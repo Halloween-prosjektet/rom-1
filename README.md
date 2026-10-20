@@ -153,10 +153,11 @@ CONTROL_ROOM_PI_ID=1
 | --- | --- |
 | Navneskjermen er ferdig | `player_register` (gruppenavn) |
 | Man kommer ned i kjelleren (klokka starter) | `game_start` |
-| Man bruker skriveren (klokka stopper) | `share` av `group_name`, `finish_time` ("01:00.7") og `finish_time_ms` til alle rom, så `game_finish` |
+| Man bruker skriveren (klokka stopper) | `game_finish` |
 | "Ny gruppe" / `RESET` før gruppa ble ferdig | `player_leave` |
 
-- Resultatlista regnes ut av serveren fra tidsstemplene i `game_start` / `game_finish`.
+- Resultatlista regnes ut av serveren fra tidsstemplene i `game_start` / `game_finish`,
+  og gruppenavnet følger med som brukernavn. Vi sender derfor ingen `share`.
 - En ferdig gruppe får **ikke** `player_leave` (da ville serveren slettet den fra lista).
 - Sluttskjermen viser om gruppa må vente ("Neste rom er opptatt …") eller kan gå videre.
 - Rom 1 kan bare registrere en ny gruppe når forrige gruppe har gått videre til rom 2.
