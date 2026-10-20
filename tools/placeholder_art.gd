@@ -33,6 +33,13 @@ static func run(overwrite := OVERWRITE) -> Array[String]:
 		"ui/dialogue_box.png": _dialogue_box,
 		"ui/arrow.png": _arrow,
 		"ui/action.png": _action,
+		# Tittelskjermen (panorama). Har egne frø, så rekkefølgen over påvirkes ikke.
+		"ui/title_sky.png": _pano_sky,
+		"ui/title_wall.png": _pano_wall,
+		"ui/title_front.png": _pano_front,
+		"ui/title_shadow.png": _pano_shadow,
+		"ui/title_figure.png": _pano_figure,
+		"ui/title_fog.png": _pano_fog,
 	}
 	for rel: String in images:
 		var path: String = ROOT + rel
@@ -579,6 +586,438 @@ static func _action() -> Image:
 				_px(img, x, y, Color(1, 1, 1, 0.5))
 	_rect(img, 16, 9, 4, 12, Color(1, 1, 1, 0.8))
 	_rect(img, 16, 24, 4, 4, Color(1, 1, 1, 0.8))
+	return img
+
+
+# ======================================================================
+# Tittelskjerm – panorama av kjellergangen sett fra siden (scenes/title.tscn)
+# ======================================================================
+# Lagene bakfra: title_sky (ses bare gjennom vinduene) -> title_wall -> title_front.
+# Vinduer, lamper og dører i title_wall må stå der markørene i title.tscn står.
+
+const PANO_WINDOWS := [40, 250, 430, 640]  # venstre kant, hullet er 30×22 ved y = 30
+const PANO_LAMPS := [120, 335, 545, 735]   # midten av lysrøret, y = 28
+const PANO_DOORS := [172, 482, 690]        # venstre kant, 26×52 ved y = 136 (nr. 2 står på gløtt)
+const PANO_FLOOR := 188                    # der gulvet begynner
+
+
+static func _ellipse(img: Image, cx: float, cy: float, rx: float, ry: float, c: Color) -> void:
+	for y in range(int(cy - ry) - 1, int(cy + ry) + 2):
+		for x in range(int(cx - rx) - 1, int(cx + rx) + 2):
+			if Vector2((x + 0.5 - cx) / rx, (y + 0.5 - cy) / ry).length_squared() <= 1.0:
+				_px(img, x, y, c)
+
+
+static func _line(img: Image, a: Vector2, b: Vector2, w: int, c: Color) -> void:
+	var steps := int(maxf(absf(b.x - a.x), absf(b.y - a.y))) + 1
+	for i in steps + 1:
+		var p := a.lerp(b, float(i) / steps)
+		_rect(img, int(p.x - w / 2.0), int(p.y), w, 1, c)
+
+
+static func _pano_box(img: Image, x: int, y: int, w: int, h: int) -> void:
+	var c := _shade(Color8(120, 92, 58), rng.randf_range(0.55, 0.85))
+	_rect(img, x, y, w, h, c)
+	_rect(img, x, y, w, 1, _shade(c, 1.3))
+	_rect(img, x + w / 2, y, 1, h / 2, _shade(c, 1.45))  # teip
+	_rect(img, x + w - 1, y, 1, h, _shade(c, 0.65))
+
+
+static func _pano_crate(img: Image, x: int, y: int, w: int, h: int) -> void:
+	var wood := _shade(Color8(88, 64, 38), rng.randf_range(0.75, 0.95))
+	_rect(img, x, y, w, h, wood)
+	_rect(img, x, y, w, 2, _shade(wood, 1.25))
+	_rect(img, x, y + h / 2, w, 1, _shade(wood, 0.65))
+	_line(img, Vector2(x + 2, y + h - 2), Vector2(x + w - 3, y + 2), 1, _shade(wood, 0.72))
+	_rect(img, x, y, 1, h, _shade(wood, 0.55))
+	_rect(img, x + w - 1, y, 1, h, _shade(wood, 0.55))
+	_rect(img, x, y + h - 1, w, 1, _shade(wood, 0.5))
+
+
+## Natthimmel og bakke utenfor kjellervinduene (600×64, ses bare gjennom vinduene).
+static func _pano_sky() -> Image:
+	rng.seed = 501
+	var img := _img(600, 64)
+	var top := Color8(9, 12, 24)
+	var low := Color8(42, 52, 76)
+	for y in 64:
+		_rect(img, 0, y, 600, 1, top.lerp(low, clampf(y / 46.0, 0.0, 1.0)))
+	for i in 40:  # stjerner
+		_px(img, rng.randi_range(0, 599), rng.randi_range(0, 36), Color8(110, 120, 150))
+	for i in 7:  # skyer
+		var cx := rng.randi_range(0, 599)
+		var cy := rng.randi_range(8, 34)
+		for k in 5:
+			_ellipse(img, cx + k * 9 + rng.randi_range(-3, 3), cy + rng.randi_range(-2, 2),
+				rng.randf_range(8, 14), rng.randf_range(2, 3.5), Color(0.06, 0.08, 0.13, 0.5))
+	# måne med glorie
+	_ellipse(img, 300, 30, 16, 16, Color(0.55, 0.65, 0.85, 0.08))
+	_ellipse(img, 300, 30, 10, 10, Color(0.6, 0.7, 0.9, 0.1))
+	_ellipse(img, 300, 30, 5, 5, Color8(205, 210, 195))
+	_ellipse(img, 298, 29, 1.5, 1.5, Color8(170, 175, 165))
+	_px(img, 302, 32, Color8(175, 180, 168))
+	# gatelykter langt unna
+	for lx: int in [110, 470]:
+		_rect(img, lx, 22, 1, 25, Color8(14, 16, 22))
+		_rect(img, lx - 2, 21, 4, 1, Color8(14, 16, 22))
+		_ellipse(img, lx, 23, 9, 7, Color(1.0, 0.6, 0.25, 0.1))
+		_rect(img, lx - 1, 22, 2, 1, Color8(230, 170, 90))
+	# bakken utenfor (vinduene ligger i bakkehøyde) med gresstrå
+	var ground := Color8(7, 9, 9)
+	_rect(img, 0, 47, 600, 17, ground)
+	for x in 600:
+		if rng.randf() < 0.6:
+			var h := rng.randi_range(1, 3)
+			_rect(img, x, 47 - h, 1, h, ground)
+	return img
+
+
+## Selve kjellergangen (800×240): vegg, rør, vinduer, lamper, dører og rot.
+static func _pano_wall() -> Image:
+	rng.seed = 502
+	var w := 800
+	var fl := PANO_FLOOR
+	var img := _img(w, 240)
+	# tak
+	_rect(img, 0, 0, w, 12, Color8(17, 18, 21))
+	_rect(img, 0, 11, w, 1, Color8(27, 28, 31))
+	# lettbetongblokker, malt mørkegrønn nederst og mørkere opp mot taket
+	for y in range(12, fl):
+		var row := (y - 12) / 8
+		var shift := 8 if row % 2 == 1 else 0
+		var base := Color8(46, 50, 52) if y < 128 else Color8(33, 43, 41)
+		var light := lerpf(0.68, 1.0, clampf((y - 12) / 90.0, 0.0, 1.0))
+		for x in w:
+			var block_id := (x + shift) / 16 * 7 + row * 13
+			var f := light * (0.94 + 0.03 * ((block_id * 37) % 4))
+			if (x + shift) % 16 == 0 or (y - 12) % 8 == 0:
+				f *= 0.8
+			img.set_pixel(x, y, _shade(base, f))
+	_noise(img, 0, 12, w, fl - 12, 0.015)
+	_rect(img, 0, 125, w, 1, Color8(96, 40, 34))  # rød stripe
+	_rect(img, 0, 126, w, 2, Color8(70, 26, 24))
+	for i in 7:  # sprekker
+		var x := rng.randi_range(20, w - 20)
+		var y := rng.randi_range(40, 160)
+		for k in rng.randi_range(8, 20):
+			_px(img, x, y, Color(0, 0, 0, 0.45))
+			x += rng.randi_range(-1, 1)
+			y += 1
+	# rør langs taket
+	_rect(img, 0, 14, w, 6, Color8(58, 60, 58))
+	_rect(img, 0, 14, w, 1, Color8(84, 86, 80))
+	_rect(img, 0, 19, w, 1, Color8(32, 33, 32))
+	for x in range(20, w, 64):
+		_rect(img, x, 12, 3, 9, Color8(28, 28, 31))
+		_rect(img, x + 32, 13, 3, 8, Color8(72, 74, 70))
+	_rect(img, 0, 22, w, 3, Color8(78, 52, 38))
+	_rect(img, 0, 22, w, 1, Color8(104, 72, 52))
+	_rect(img, 0, 24, w, 1, Color8(44, 30, 24))
+	for i in 14:  # rustrenner
+		_rect(img, rng.randi_range(0, w - 2), 25, rng.randi_range(1, 2), rng.randi_range(10, 70), Color(0.12, 0.07, 0.03, 0.3))
+
+	# kjellervinduer (hull – himmelen bak synes gjennom)
+	for wx: int in PANO_WINDOWS:
+		_rect(img, wx - 3, 27, 36, 28, Color8(24, 25, 28))
+		_rect(img, wx - 3, 27, 36, 1, Color8(40, 41, 44))
+		img.fill_rect(Rect2i(wx, 30, 30, 22), Color(0, 0, 0, 0))
+		for i in 18:  # skitt på glasset
+			_px(img, wx + rng.randi_range(0, 29), 30 + rng.randi_range(0, 21), Color(0.1, 0.11, 0.09, 0.5))
+		for bx: int in [wx + 9, wx + 20]:
+			_rect(img, bx, 30, 1, 22, Color8(30, 31, 35))
+		_rect(img, wx, 40, 30, 1, Color8(30, 31, 35))
+		_rect(img, wx - 4, 53, 38, 2, Color8(66, 68, 70))
+		_rect(img, wx - 4, 55, 38, 1, Color8(22, 23, 25))
+
+	# lysrør i kjetting (selve lyset tegnes i scenen)
+	for lx: int in PANO_LAMPS:
+		for cx: int in [lx - 9, lx + 9]:
+			for y in range(12, 25, 2):
+				_px(img, cx, y, Color8(44, 44, 48))
+		_rect(img, lx - 13, 25, 26, 3, Color8(48, 50, 54))
+		_rect(img, lx - 13, 25, 26, 1, Color8(64, 66, 70))
+		_rect(img, lx - 11, 28, 22, 1, Color8(84, 86, 82))
+
+	# oppslagstavle med lapper (og en savnet-plakat)
+	_rect(img, 58, 82, 56, 36, Color8(46, 36, 26))
+	_rect(img, 60, 84, 52, 32, Color8(86, 64, 44))
+	_noise(img, 60, 84, 52, 32, 0.03)
+	for i in 9:
+		var nx := 62 + rng.randi_range(0, 38)
+		var ny := 86 + rng.randi_range(0, 17)
+		var pc := Color8(170, 168, 150) if rng.randf() < 0.8 else Color8(150, 60, 50)
+		_rect(img, nx, ny, rng.randi_range(6, 10), rng.randi_range(7, 11), _shade(pc, rng.randf_range(0.6, 0.85)))
+		_px(img, nx + 3, ny, Color8(160, 30, 30))
+	_rect(img, 98, 88, 10, 13, Color8(150, 148, 132))
+	_ellipse(img, 103, 93, 2.5, 3, Color8(40, 38, 36))
+	_rect(img, 100, 98, 6, 1, Color8(90, 88, 80))
+
+	# dører
+	var metal := Color8(52, 64, 60)
+	for i in PANO_DOORS.size():
+		var dx: int = PANO_DOORS[i]
+		_rect(img, dx - 3, 133, 32, fl - 133, Color8(24, 25, 28))
+		_rect(img, dx - 3, 133, 32, 1, Color8(44, 45, 48))
+		if i == 1:  # står på gløtt – helt mørkt bak
+			_rect(img, dx, 136, 26, fl - 136, Color8(4, 4, 6))
+			_rect(img, dx, 136, 7, fl - 136, _shade(metal, 0.7))
+			_rect(img, dx + 6, 136, 1, fl - 136, _shade(metal, 0.45))
+			_rect(img, dx + 3, 162, 2, 3, Color8(120, 112, 76))
+			continue
+		_rect(img, dx, 136, 26, fl - 136, metal)
+		_rect(img, dx, 136, 26, 1, _shade(metal, 1.3))
+		_rect(img, dx + 25, 136, 1, fl - 136, _shade(metal, 0.7))
+		_rect(img, dx + 7, 142, 12, 16, Color8(12, 15, 17))  # trådglass
+		for yy in range(142, 158):
+			for xx in range(dx + 7, dx + 19):
+				if (xx + yy) % 4 == 0 or (xx - yy) % 4 == 0:
+					_px(img, xx, yy, Color8(34, 40, 40))
+		_rect(img, dx + 19, 165, 4, 2, Color8(150, 140, 92))
+		_rect(img, dx + 1, 177, 24, 10, _shade(metal, 1.12))
+		_rect(img, dx + 9, 129, 8, 3, Color8(160, 156, 132))
+		_noise(img, dx, 136, 26, fl - 136, 0.02)
+	# nødutgang-skilt over den siste døra (lyset tegnes i scenen)
+	var ex: int = PANO_DOORS[2] + 6
+	_rect(img, ex, 116, 14, 8, Color8(18, 70, 36))
+	_rect(img, ex + 1, 117, 12, 6, Color8(34, 120, 62))
+	_rect(img, ex + 3, 119, 6, 2, Color8(150, 220, 170))
+	_px(img, ex + 9, 118, Color8(150, 220, 170))
+	_px(img, ex + 9, 121, Color8(150, 220, 170))
+	_rect(img, ex + 10, 119, 1, 2, Color8(150, 220, 170))
+	# håndavtrykk ved den åpne døra
+	var hx: int = PANO_DOORS[1] + 32
+	var blood := Color(0.3, 0.04, 0.03, 0.55)
+	_rect(img, hx, 146, 6, 5, blood)
+	_rect(img, hx, 142, 1, 4, blood)
+	_rect(img, hx + 2, 141, 1, 5, blood)
+	_rect(img, hx + 4, 142, 1, 4, blood)
+	_rect(img, hx + 6, 145, 1, 3, blood)
+	_rect(img, hx + 1, 151, 1, 9, blood)
+	_rect(img, hx + 4, 151, 1, 14, blood)
+
+	# garderobeskap (ett står åpent)
+	var lock_c := Color8(50, 62, 78)
+	for i in 6:
+		var lx := 222 + i * 12
+		_rect(img, lx, 118, 11, fl - 118, lock_c)
+		_rect(img, lx, 118, 11, 1, _shade(lock_c, 1.3))
+		_rect(img, lx + 11, 118, 1, fl - 118, Color8(18, 20, 24))
+		for v in 3:
+			_rect(img, lx + 3, 123 + v * 2, 5, 1, _shade(lock_c, 0.6))
+		_rect(img, lx + 8, 148, 1, 4, Color8(140, 140, 130))
+		if i == 3:
+			_rect(img, lx, 119, 11, fl - 119, Color8(10, 10, 12))
+			_rect(img, lx + 1, 128, 9, 1, Color8(30, 30, 34))
+			_rect(img, lx + 11, 117, 3, fl - 116, _shade(lock_c, 1.1))
+	_noise(img, 222, 118, 74, fl - 118, 0.02)
+	_pano_box(img, 226, 108, 16, 10)
+	_pano_box(img, 262, 112, 12, 6)
+
+	# brannalarm og brannslukker
+	_rect(img, 316, 98, 10, 10, Color8(120, 24, 22))
+	_rect(img, 316, 98, 10, 1, Color8(160, 40, 34))
+	_rect(img, 320, 102, 2, 2, Color8(200, 190, 180))
+	_rect(img, 315, 146, 12, 2, Color8(60, 60, 64))
+	_rect(img, 319, 148, 3, 4, Color8(40, 40, 42))
+	_rect(img, 317, 152, 8, 18, Color8(140, 28, 24))
+	_rect(img, 317, 152, 2, 18, Color8(170, 50, 40))
+	_rect(img, 316, 156, 1, 8, Color8(30, 30, 30))
+	_rect(img, 319, 158, 4, 5, Color8(180, 175, 160))
+
+	# hylle med esker
+	var steel := Color8(72, 76, 82)
+	_rect(img, 372, 104, 56, fl - 104, Color(0, 0, 0, 0.35))
+	for sy: int in [118, 140, 162, 185]:
+		var x := 375
+		while x < 420:
+			var bw := rng.randi_range(7, 15)
+			var bh := rng.randi_range(6, 13)
+			if x + bw > 425:
+				break
+			if rng.randf() < 0.25:  # permer
+				for k in rng.randi_range(2, 4):
+					_rect(img, x + k * 2, sy - 11, 2, 11, _shade([Color8(110, 40, 40), Color8(40, 60, 110), Color8(60, 90, 60)][k % 3], 0.7))
+				x += 9
+			else:
+				_pano_box(img, x, sy - bh, bw, bh)
+				x += bw + rng.randi_range(0, 3)
+		_rect(img, 372, sy, 56, 2, steel)
+		_rect(img, 372, sy, 56, 1, _shade(steel, 1.3))
+	_rect(img, 372, 104, 2, fl - 104, steel)
+	_rect(img, 426, 104, 2, fl - 104, steel)
+
+	# sikringsskap med varseltrekant
+	_rect(img, 448, 24, 2, 68, Color8(48, 50, 50))
+	_rect(img, 440, 92, 18, 24, Color8(66, 70, 68))
+	_rect(img, 440, 92, 18, 1, Color8(90, 94, 90))
+	_rect(img, 457, 92, 1, 24, Color8(40, 42, 42))
+	_rect(img, 440, 115, 18, 1, Color8(40, 42, 42))
+	for i in 5:
+		_rect(img, 449 - i, 99 + i, i * 2 + 1, 1, Color8(180, 150, 40))
+	_px(img, 449, 101, Color8(20, 20, 20))
+	_px(img, 449, 103, Color8(20, 20, 20))
+
+	# pult med en gammel skriver (feillampa blinker i scenen)
+	_rect(img, 560, 162, 52, 3, Color8(92, 68, 46))
+	_rect(img, 560, 162, 52, 1, Color8(120, 92, 64))
+	_rect(img, 562, 165, 2, fl - 165, Color8(50, 40, 30))
+	_rect(img, 608, 165, 2, fl - 165, Color8(50, 40, 30))
+	_rect(img, 588, 165, 20, 16, Color8(74, 54, 36))
+	_rect(img, 588, 172, 20, 1, Color8(50, 36, 24))
+	_rect(img, 570, 144, 20, 4, Color8(196, 194, 184))
+	_rect(img, 566, 148, 28, 14, Color8(132, 128, 114))
+	_rect(img, 566, 148, 28, 2, Color8(156, 152, 136))
+	_rect(img, 570, 156, 20, 2, Color8(40, 40, 40))
+	_rect(img, 589, 151, 2, 1, Color8(110, 30, 26))
+	_noise(img, 566, 144, 28, 18, 0.02)
+
+	# rør ned langs veggen med ventilratt
+	_rect(img, 622, 24, 6, fl - 24, Color8(56, 58, 56))
+	_rect(img, 622, 24, 1, fl - 24, Color8(78, 80, 76))
+	_rect(img, 627, 24, 1, fl - 24, Color8(30, 31, 30))
+	for fy: int in [60, 170]:
+		_rect(img, 620, fy, 10, 2, Color8(70, 72, 68))
+	for i in 24:
+		var a := i / 24.0 * TAU
+		_px(img, 625 + roundi(cos(a) * 5), 120 + roundi(sin(a) * 5), Color8(120, 30, 28))
+	_rect(img, 620, 120, 11, 1, Color8(100, 26, 24))
+	_rect(img, 625, 115, 1, 11, Color8(100, 26, 24))
+
+	# kasser stablet i enden
+	_pano_crate(img, 740, 170, 24, 18)
+	_pano_crate(img, 765, 170, 26, 18)
+	_pano_crate(img, 750, 152, 24, 18)
+
+	# gulv med fuger i perspektiv
+	var floor_c := Color8(30, 31, 34)
+	for y in range(fl, 240):
+		_rect(img, 0, y, w, 1, _shade(floor_c, lerpf(0.8, 1.15, float(y - fl) / (240 - fl))))
+	_noise(img, 0, fl, w, 240 - fl, 0.018)
+	for y: int in [195, 204, 217, 235]:
+		_rect(img, 0, y, w, 1, _shade(floor_c, 0.75))
+	for x0 in range(-200, w + 200, 40):
+		for y in range(fl, 240):
+			_px(img, x0 + int((x0 - w / 2) * (y - fl) / 140.0), y, _shade(floor_c, 0.75))
+	_rect(img, 0, fl - 2, w, 2, Color8(20, 20, 23))
+	_rect(img, 0, fl, w, 3, Color(0, 0, 0, 0.35))
+	# vanndammer som speiler lyset
+	for p: Array in [[335, 210, 26.0, 3.5], [618, 224, 30.0, 4.0], [90, 230, 18.0, 3.0]]:
+		_ellipse(img, p[0], p[1], p[2], p[3], Color8(20, 24, 30))
+		_rect(img, int(p[0] - p[2] * 0.5), p[1] - 1, int(p[2] * 0.6), 1, Color8(58, 64, 74))
+	# ark og rusk
+	for i in 10:
+		_rect(img, rng.randi_range(540, 640), rng.randi_range(192, 230), rng.randi_range(3, 5), 2,
+			_shade(Color8(160, 158, 146), rng.randf_range(0.5, 0.8)))
+	for i in 80:
+		_px(img, rng.randi_range(0, w - 1), rng.randi_range(fl, 239), Color(0, 0, 0, 0.4))
+	return img
+
+
+## Forgrunn (1040×240, nesten svarte silhuetter) som glir fortere forbi enn veggen.
+static func _pano_front() -> Image:
+	rng.seed = 503
+	var w := 1040
+	var img := _img(w, 240)
+	var col := Color8(9, 8, 11)
+	var rim := Color8(30, 30, 37)
+	# rør øverst
+	_rect(img, 0, 0, w, 5, col)
+	for x in range(40, w, 130):
+		_rect(img, x, 0, 5, 8, col)
+	# søyler
+	for px: int in [180, 600, 930]:
+		_rect(img, px - 4, 0, 30, 12, col)
+		_rect(img, px, 0, 22, 240, col)
+		_rect(img, px - 3, 224, 28, 16, col)
+		_rect(img, px, 12, 1, 212, rim)
+		_rect(img, px + 21, 12, 1, 212, _shade(rim, 0.7))
+	# kabler som henger ned
+	for c: Array in [[300, 470, 26.0], [700, 860, 18.0], [40, 140, 14.0]]:
+		for x in range(c[0], c[1] + 1):
+			var t: float = float(x - c[0]) / (c[1] - c[0]) * 2.0 - 1.0
+			_rect(img, x, 4 + int(c[2] * (1.0 - t * t)), 1, 2, col)
+	# spindelvev ved en søyle
+	var web := Color(0.55, 0.55, 0.6, 0.22)
+	var o := Vector2(622, 12)
+	for i in 5:
+		var a := deg_to_rad(i * 22.5)
+		for r in 20:
+			_px(img, int(o.x + cos(a) * r), int(o.y + sin(a) * r), web)
+	for r: int in [6, 11, 16]:
+		for k in r * 2:
+			var a := k / (r * 2.0) * PI * 0.5
+			_px(img, int(o.x + cos(a) * r), int(o.y + sin(a) * r), web)
+	# kasser, stol og esker nederst
+	_rect(img, 0, 196, 46, 44, col)
+	_rect(img, 40, 210, 48, 30, col)
+	_rect(img, 8, 178, 30, 18, col)
+	_rect(img, 8, 178, 30, 1, rim)
+	_rect(img, 46, 210, 42, 1, rim)
+	_rect(img, 440, 213, 26, 3, col)
+	_rect(img, 462, 186, 3, 30, col)
+	_rect(img, 456, 188, 10, 12, col)
+	_rect(img, 442, 216, 2, 24, col)
+	_rect(img, 461, 216, 2, 24, col)
+	_rect(img, 972, 204, 44, 36, col)
+	_rect(img, 996, 186, 30, 18, col)
+	_rect(img, 996, 186, 30, 1, rim)
+	return img
+
+
+## Skygge utenfor vinduet: 3 ruter à 16×32 – bein i steg A, steg B og et hode som titter inn.
+static func _pano_shadow() -> Image:
+	var img := _img(48, 32)
+	var c := Color8(5, 5, 7)
+	_line(img, Vector2(7, 0), Vector2(4, 29), 3, c)
+	_line(img, Vector2(9, 0), Vector2(12, 29), 3, c)
+	_rect(img, 2, 29, 5, 3, c)
+	_rect(img, 11, 29, 5, 3, c)
+	_rect(img, 21, 0, 3, 29, c)
+	_rect(img, 24, 0, 3, 29, c)
+	_rect(img, 21, 29, 8, 3, c)
+	_ellipse(img, 40, 9, 4.5, 5.5, c)
+	_rect(img, 38, 14, 4, 3, c)
+	_ellipse(img, 40, 25, 8, 7, c)
+	_rect(img, 32, 25, 16, 7, c)
+	_px(img, 38, 9, Color8(120, 122, 112))
+	_px(img, 42, 9, Color8(120, 122, 112))
+	return img
+
+
+## Høy, tynn skikkelse (16×40) som dukker opp i døråpningen eller når lyset blinker.
+static func _pano_figure() -> Image:
+	var img := _img(16, 40)
+	var c := Color8(6, 6, 8)
+	_ellipse(img, 8, 6, 3.5, 4.5, c)
+	_rect(img, 7, 10, 2, 2, c)
+	for y in range(12, 27):
+		var half := 5 - (y - 12) / 6
+		_rect(img, 8 - half, y, half * 2, 1, c)
+	_rect(img, 2, 13, 2, 18, c)  # lange armer
+	_rect(img, 12, 13, 2, 18, c)
+	_rect(img, 4, 27, 3, 13, c)
+	_rect(img, 9, 27, 3, 13, c)
+	_px(img, 6, 6, Color8(225, 220, 205))
+	_px(img, 10, 6, Color8(225, 220, 205))
+	return img
+
+
+## Tåke som kan flislegges sidelengs (256×48), tettest nederst.
+static func _pano_fog() -> Image:
+	var img := _img(256, 48)
+	var noise := FastNoiseLite.new()
+	noise.seed = 504
+	noise.frequency = 0.035
+	noise.fractal_octaves = 3
+	var r := 256.0 / TAU
+	for y in 48:
+		for x in 256:
+			var a := x / 256.0 * TAU
+			var n := noise.get_noise_3d(cos(a) * r, sin(a) * r, y * 1.6) * 0.5 + 0.5
+			var f := clampf((n - 0.3) * 1.6, 0.0, 1.0) * smoothstep(0.0, 1.0, y / 40.0)
+			f = floorf(f * 5.0) / 5.0
+			if f > 0.0:
+				img.set_pixel(x, y, Color(0.62, 0.66, 0.74, f * 0.45))
 	return img
 
 

@@ -60,6 +60,23 @@ Nye NPC-er: bruk `scenes/actors/npc.tscn` og sett `sheet` til et nytt ark.
 - `portraits/<navn>.png` – *valgfritt*: portrett i dialogboksen, f.eks. `teacher.png`,
   `reception.png`, `student.png` (navnene står i `data/dialogue_no.json` under `names`)
 
+### Tittelskjermen – `ui/title_*.png`
+
+Panorama av kjellergangen sett fra siden. Lagene glir med ulik fart (parallakse).
+
+| Fil | Størrelse | Innhold |
+|---|---|---|
+| `title_sky.png` | 600×64 | Natthimmel og bakke utenfor – ses bare gjennom vinduene |
+| `title_wall.png` | 800×240 | Selve gangen. Vinduene må være **gjennomsiktige hull** |
+| `title_front.png` | 1040×240 | Nesten svarte silhuetter i forgrunnen (søyler, kabler, kasser) |
+| `title_shadow.png` | 48×32 | 3 ruter à 16×32: bein steg A, bein steg B, hode som titter inn |
+| `title_figure.png` | 16×40 | Skikkelsen i døråpningen / under lampa (lyse øyne) |
+| `title_fog.png` | 256×48 | Tåke som flislegges sidelengs |
+
+Lyset fra lysrørene tegnes av spillet. Bytter du `title_wall.png`, flytt markørene
+`Lamps`, `Windows`, `DoorEyes`, `PrinterLed` og `ExitSign` under `Pano/Wall` i
+`scenes/title.tscn` så de stemmer med den nye tegningen.
+
 ## Font – `fonts/`
 
 Legg en pikselfont som `fonts/main.ttf` (eller `.otf`), så brukes den overalt.

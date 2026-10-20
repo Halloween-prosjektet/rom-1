@@ -11,7 +11,8 @@
 
 	"ui": {
 		"title": "U-5",
-		"press_start": "Trykk for å starte",
+		"title_sub": "KJELLEREN  ·  ETASJE -1",
+		"press_start": "Trykk hva som helst for å starte",
 		"reset_room": "Tilbakestill rommet",
 		"location_school": "Elvebakken VGS\n2. etasje",
 		"location_basement": "Kjeller\nEtasje -1",
