@@ -4,8 +4,11 @@ extends Node
 
 const DEFAULTS_PATH := "res://config/defaults.cfg"
 const OVERRIDE_NAME := "station.cfg"
+## Serverdetaljer (kontrollrommet) ligger i .env, se .env.example. Bruk: Config.env("CONTROL_ROOM_URL")
+const ENV_NAME := ".env"
 
 var _cfg := ConfigFile.new()
+var _env: Dictionary = {}
 
 
 func _ready() -> void:
@@ -14,6 +17,7 @@ func _ready() -> void:
 		push_error("Config: kunne ikke lese %s (%s)" % [DEFAULTS_PATH, err])
 	for path in _override_paths():
 		_merge(path)
+	_load_env()
 	_apply_display()
 
 
@@ -23,6 +27,48 @@ func _override_paths() -> Array[String]:
 		paths.append(OS.get_executable_path().get_base_dir().path_join(OVERRIDE_NAME))
 	paths.append("user://" + OVERRIDE_NAME)
 	return paths
+
+
+## Verdi fra en ekte miljøvariabel, ellers fra .env-fila, ellers `default`.
+func env(key: String, default: String = "") -> String:
+	var value := OS.get_environment(key)
+	if value != "":
+		return value
+	return str(_env.get(key, default))
+
+
+## .env leses fra (første som har nøkkelen vinner): ved siden av spillfila (Pi-en),
+## prosjektmappa (editoren), user://.
+func _load_env() -> void:
+	var paths: Array[String] = []
+	if not OS.has_feature("editor"):
+		paths.append(OS.get_executable_path().get_base_dir().path_join(ENV_NAME))
+	paths.append("res://" + ENV_NAME)
+	paths.append("user://" + ENV_NAME)
+	for path in paths:
+		if not FileAccess.file_exists(path):
+			continue
+		for line in FileAccess.get_file_as_string(path).split("\n"):
+			var entry := _parse_env_line(line)
+			if not entry.is_empty() and not _env.has(entry[0]):
+				_env[entry[0]] = entry[1]
+		print("Config: lastet ", path)
+
+
+## 'KEY=verdi', 'export KEY="verdi"', '# kommentar' -> [key, verdi] eller []
+static func _parse_env_line(line: String) -> Array:
+	line = line.strip_edges()
+	if line == "" or line.begins_with("#") or not "=" in line:
+		return []
+	if line.begins_with("export "):
+		line = line.substr(7)
+	var key := line.get_slice("=", 0).strip_edges()
+	var value := line.substr(line.find("=") + 1).strip_edges()
+	if value.length() >= 2 and value[0] in ["\"", "'"] and value.ends_with(value[0]):
+		value = value.substr(1, value.length() - 2)
+	elif " #" in value:
+		value = value.get_slice(" #", 0).strip_edges()
+	return [key, value]
 
 
 func _merge(path: String) -> void:

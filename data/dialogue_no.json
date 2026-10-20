@@ -26,6 +26,10 @@
 		"name_missing": "Skriv inn et navn først.",
 		"end_result": "{name}  -  tid: {time}",
 		"restart": "Ny gruppe",
+		"cr_sending": "Melder fra til kontrollrommet ...",
+		"cr_waiting": "Neste rom er opptatt. Vent her litt.",
+		"cr_waiting_until": "Neste rom er opptatt. Vent her til ca. kl. {wait}.",
+		"cr_go": "Neste rom er klart - gå videre!",
 		"touch_on": "Berøringskontroller: PÅ",
 		"touch_off": "Berøringskontroller: AV"
 	},

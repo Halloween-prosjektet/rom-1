@@ -111,30 +111,57 @@ echo -n RESET  | nc -u -w1 <pi-ip> 4242
 
 Spillet melder fra til kontrollrom-serveren med
 [control-room](https://github.com/halloween-prosjektet/control-room)-addonen, som ligger
-som git submodule i `addons/control_room_client`. Etter kloning:
+som git submodule i `addons/control_room_client`. Serveren styrer flyten gjennom de fem
+rommene og lager resultatlista. Vi er **rom 1**, så det er vi som registrerer gruppene.
+
+Etter kloning, og for å hente nyeste versjon av addonen:
 
 ```bash
 git submodule update --init
 ```
 
-`scripts/autoload/control_room.gd` sender:
+```bash
+git submodule update --remote addons/control_room_client
+```
+
+### Serverdetaljer (`.env`)
+
+Adresse og rom-nummer ligger i `.env` (ikke i git). Kopier malen og fyll inn:
+
+```bash
+cp .env.example .env
+```
+
+```ini
+CONTROL_ROOM_URL=ws://172.31.0.200:7321   # tom = av
+CONTROL_ROOM_PI_ID=1
+```
+
+- **Editoren** leser `.env` i prosjektmappa.
+- **Pi-en**: legg `.env` i samme mappe som `kjelleren.arm64`. Pi-en må være på WiFi-et
+  **BakkaIM** for å nå serveren.
+- Ekte miljøvariabler med samme navn overstyrer fila.
+
+### Hva som sendes
+
+`scripts/autoload/control_room.gd`:
 
 | Når | Melding |
 | --- | --- |
-| Navneskjermen er ferdig | `register_player(gruppenavn)` |
-| Man kommer ned i kjelleren (klokka starter) | `start_game()` |
-| Man bruker skriveren (klokka stopper) | `finish_game()`, så `share("group_name", …)`, `share("finish_time", "01:00.7")` og `share("finish_time_ms", 60742)` til alle rom |
-| "Ny gruppe" / `RESET` | `leave_player()` |
+| Navneskjermen er ferdig | `player_register` (gruppenavn) |
+| Man kommer ned i kjelleren (klokka starter) | `game_start` |
+| Man bruker skriveren (klokka stopper) | `share` av `group_name`, `finish_time` ("01:00.7") og `finish_time_ms` til alle rom, så `game_finish` |
+| "Ny gruppe" / `RESET` før gruppa ble ferdig | `player_leave` |
 
-Adressen settes i `station.cfg` på Pi-en (tom `uri` = av):
-
-```ini
-[control_room]
-uri="ws://192.168.1.10:443"
-pi_id=1
-```
-
-Er serveren nede, legges meldingene i kø og sendes når den kommer opp igjen.
+- Resultatlista regnes ut av serveren fra tidsstemplene i `game_start` / `game_finish`.
+- En ferdig gruppe får **ikke** `player_leave` (da ville serveren slettet den fra lista).
+- Sluttskjermen viser om gruppa må vente ("Neste rom er opptatt …") eller kan gå videre.
+- Rom 1 kan bare registrere en ny gruppe når forrige gruppe har gått videre til rom 2.
+  Svarer serveren `room_busy`, prøver spillet igjen hvert 5. sekund. Start og slutt
+  holdes tilbake til da, og sendes med de opprinnelige tidene.
+- Går strømmen midt i et spill, sier spillet fra at den gruppa gikk når det starter
+  igjen (lagret i `user://control_room.json`), så rom 1 ikke blir stående opptatt.
+- Er serveren nede, legges meldingene i kø og sendes når den kommer opp igjen.
 
 ## Eksportere til Raspberry Pi 4
 
