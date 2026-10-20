@@ -26,6 +26,7 @@ Dialogue="*res://scripts/autoload/dialogue.gd"
 GameState="*res://scripts/autoload/game_state.gd"
 PrinterService="*res://scripts/autoload/printer_service.gd"
 StationLink="*res://scripts/autoload/station_link.gd"
+ControlRoom="*res://scripts/autoload/control_room.gd"
 
 [display]
 

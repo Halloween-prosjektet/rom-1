@@ -8,3 +8,6 @@ addons/.godot_ai_update/
 # Export output
 build/
 *.tmp
+
+# Serverdetaljer (se .env.example)
+.env
