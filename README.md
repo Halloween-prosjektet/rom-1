@@ -9,7 +9,10 @@ Laget i **Godot 4.7** (Compatibility-renderer, nødvendig for Pi 4).
 
 ## Spillflyt
 
-1. **Tittelskjerm** – trykk for å starte.
+1. **Tittelskjerm** – en mørk kjellergang panorerer sakte bak tittelen (flimrende lysrør,
+   støv, tåke og av og til noe i vinduene eller døråpningen). Trykk hva som helst – tast,
+   mus, berøring eller gamepad-knapp – for å starte. Av/på-knappen for berøringskontroller
+   nede til høyre starter ikke spillet.
 2. **Navneskjerm** – gruppa skriver inn navnet sitt (skjermtastatur med Æ/Ø/Å, vanlig
    tastatur virker også). Navnet brukes i dialogen, på utskriften og på resultatlista.
 3. **Intro (cutscene)** – læreren ber deg skrive ut et dokument. Alle skriverne er ødelagte.

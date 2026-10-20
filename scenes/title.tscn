@@ -1,8 +1,28 @@
 [gd_scene format=3 uid="uid://po714q6qpnt5"]
 
 [ext_resource type="Script" uid="uid://b6vbqgrnldugc" path="res://scripts/scenes/title.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://bw02yd4vtugpi" path="res://assets/ui/title_sky.png" id="2"]
+[ext_resource type="Texture2D" uid="uid://dsnqwfie3i64j" path="res://assets/ui/title_wall.png" id="3"]
+[ext_resource type="Texture2D" uid="uid://cdhnakwu4si6i" path="res://assets/ui/title_front.png" id="4"]
+[ext_resource type="Texture2D" uid="uid://clbip3ei2m356" path="res://assets/ui/title_shadow.png" id="5"]
+[ext_resource type="Texture2D" uid="uid://bggs3dbrhm5lb" path="res://assets/ui/title_figure.png" id="6"]
+[ext_resource type="Texture2D" uid="uid://ds3fa52txm1sn" path="res://assets/ui/title_fog.png" id="7"]
 
-[node name="Title" type="Control" unique_id=2048453699]
+[sub_resource type="Gradient" id="Gradient_dust"]
+offsets = PackedFloat32Array(0, 0.2, 0.8, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="Gradient" id="Gradient_shade"]
+offsets = PackedFloat32Array(0, 0.28, 0.62, 1)
+colors = PackedColorArray(0, 0, 0, 0.6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.65)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_shade"]
+gradient = SubResource("Gradient_shade")
+width = 4
+height = 64
+fill_to = Vector2(0, 1)
+
+[node name="Title" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,7 +31,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 
-[node name="Background" type="ColorRect" parent="." unique_id=1142682897]
+[node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -21,38 +41,179 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0.02, 0.02, 0.03, 1)
 
-[node name="Title" type="Label" parent="." unique_id=5275929]
+[node name="Pano" type="Node2D" parent="."]
+
+[node name="Sky" type="Sprite2D" parent="Pano"]
+texture = ExtResource("2")
+centered = false
+
+[node name="Wall" type="Node2D" parent="Pano"]
+
+[node name="Shadow" type="Sprite2D" parent="Pano/Wall"]
+visible = false
+texture = ExtResource("5")
+centered = false
+hframes = 3
+
+[node name="WallSprite" type="Sprite2D" parent="Pano/Wall"]
+texture = ExtResource("3")
+centered = false
+
+[node name="Figure" type="Sprite2D" parent="Pano/Wall"]
+visible = false
+texture = ExtResource("6")
+centered = false
+
+[node name="Glow" type="Node2D" parent="Pano/Wall"]
+
+[node name="Dust" type="CPUParticles2D" parent="Pano/Wall"]
+position = Vector2(400, 110)
+amount = 70
+lifetime = 10.0
+preprocess = 10.0
+emission_shape = 3
+emission_rect_extents = Vector2(400, 90)
+direction = Vector2(1, 0.3)
+spread = 180.0
+gravity = Vector2(0, 0.8)
+initial_velocity_min = 1.5
+initial_velocity_max = 4.0
+color = Color(0.85, 0.85, 0.8, 0.35)
+color_ramp = SubResource("Gradient_dust")
+
+[node name="Lamps" type="Node2D" parent="Pano/Wall"]
+
+[node name="Lamp1" type="Marker2D" parent="Pano/Wall/Lamps"]
+position = Vector2(120, 28)
+
+[node name="Lamp2" type="Marker2D" parent="Pano/Wall/Lamps"]
+position = Vector2(335, 28)
+metadata/flicker_rate = 0.1
+
+[node name="Lamp3" type="Marker2D" parent="Pano/Wall/Lamps"]
+position = Vector2(545, 28)
+metadata/flicker_rate = 0.45
+
+[node name="Lamp4" type="Marker2D" parent="Pano/Wall/Lamps"]
+position = Vector2(735, 28)
+metadata/dead = true
+metadata/flicker_rate = 0.3
+
+[node name="Windows" type="Node2D" parent="Pano/Wall"]
+
+[node name="Window1" type="Marker2D" parent="Pano/Wall/Windows"]
+position = Vector2(40, 30)
+
+[node name="Window2" type="Marker2D" parent="Pano/Wall/Windows"]
+position = Vector2(250, 30)
+
+[node name="Window3" type="Marker2D" parent="Pano/Wall/Windows"]
+position = Vector2(430, 30)
+
+[node name="Window4" type="Marker2D" parent="Pano/Wall/Windows"]
+position = Vector2(640, 30)
+
+[node name="DoorEyes" type="Marker2D" parent="Pano/Wall"]
+position = Vector2(491, 148)
+
+[node name="PrinterLed" type="Marker2D" parent="Pano/Wall"]
+position = Vector2(590, 151.5)
+
+[node name="ExitSign" type="Marker2D" parent="Pano/Wall"]
+position = Vector2(703, 120)
+
+[node name="Front" type="Sprite2D" parent="Pano"]
+texture = ExtResource("4")
+centered = false
+
+[node name="FogBack" type="Sprite2D" parent="."]
+modulate = Color(1, 1, 1, 0.7)
+texture_repeat = 2
+position = Vector2(0, 174)
+texture = ExtResource("7")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 400, 48)
+
+[node name="FogFront" type="Sprite2D" parent="."]
+texture_repeat = 2
+position = Vector2(0, 194)
+texture = ExtResource("7")
+centered = false
+flip_h = true
+region_enabled = true
+region_rect = Rect2(0, 0, 400, 48)
+
+[node name="Shade" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_shade")
+expand_mode = 1
+
+[node name="Title" type="Label" parent="."]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 70.0
-offset_bottom = 110.0
+offset_top = 34.0
+offset_bottom = 92.0
 grow_horizontal = 2
-theme_override_colors/font_color = Color(0.75, 0.12, 0.12, 1)
+theme_override_colors/font_color = Color(0.72, 0.08, 0.08, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 32
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 3
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 48
 text = "U-5"
 horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="Prompt" type="Label" parent="." unique_id=443655749]
+[node name="Subtitle" type="Label" parent="."]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 162.0
-offset_bottom = 178.0
+offset_top = 92.0
+offset_bottom = 106.0
 grow_horizontal = 2
-theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 1)
+theme_override_colors/font_color = Color(0.72, 0.72, 0.75, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 10
-text = "Trykk for å starte"
+text = "Kjelleren"
 horizontal_alignment = 1
 
-[node name="TouchToggle" type="Button" parent="." unique_id=1715136128]
-layout_mode = 0
-offset_left = 105.0
-offset_top = 200.0
-offset_right = 295.0
-offset_bottom = 224.0
+[node name="Prompt" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 160.0
+offset_bottom = 176.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.9, 0.88, 0.85, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 10
+text = "Trykk hva som helst for å starte"
+horizontal_alignment = 1
+
+[node name="TouchToggle" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -150.0
+offset_top = -28.0
+offset_right = -8.0
+offset_bottom = -6.0
+grow_horizontal = 0
+grow_vertical = 0
 focus_mode = 0
 theme_override_font_sizes/font_size = 9
 text = "Berøringskontroller: AV"
