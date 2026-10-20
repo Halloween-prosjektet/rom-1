@@ -57,6 +57,10 @@ static func run(overwrite := OVERWRITE) -> Array[String]:
 		"printer": _snd_printer, "error": _snd_error, "sting": _snd_sting, "thud": _snd_thud,
 		"blip": _snd_blip, "item": _snd_item, "rummage": _snd_rummage, "static": _snd_static,
 		"whisper": _snd_whisper,
+		# Stemningslyder (spilles tilfeldig rundt spilleren, se scripts/fx/ambient_sounds.gd)
+		"drip": _snd_drip, "pipe_knock": _snd_pipe_knock, "creak": _snd_creak,
+		"distant_steps": _snd_distant_steps, "rat": _snd_rat, "vent": _snd_vent,
+		"footstep_wet": _snd_footstep_wet,
 	}
 	for sname: String in sounds:
 		var path := ROOT + "audio/" + sname + ".wav"
@@ -123,147 +127,278 @@ static func _shade(c: Color, f: float) -> Color:
 # Tiles (8 x 2 ruter à 16 px = 128 x 32) - se assets/README.md for oppsett
 # ======================================================================
 
+## Deterministisk "tilfeldig" tall 0..1 for et punkt (samme hver gang).
+static func _h(x: int, y: int, s: int) -> float:
+	var n := (x * 374761393 + y * 668265263 + s * 2246822519) & 0x7fffffff
+	n = ((n ^ (n >> 13)) * 1274126177) & 0x7fffffff
+	return float(n & 0xffff) / 65535.0
+
+
+## Myk verdistøy 0..1 (bilineær mellom gitterpunkter).
+static func _vn(x: float, y: float, s: int) -> float:
+	var ix := floori(x)
+	var iy := floori(y)
+	var fx := x - ix
+	var fy := y - iy
+	fx = fx * fx * (3.0 - 2.0 * fx)
+	fy = fy * fy * (3.0 - 2.0 * fy)
+	var a := lerpf(_h(ix, iy, s), _h(ix + 1, iy, s), fx)
+	var b := lerpf(_h(ix, iy + 1, s), _h(ix + 1, iy + 1, s), fx)
+	return lerpf(a, b, fy)
+
+
+static func _fbm(x: float, y: float, s: int) -> float:
+	return _vn(x, y, s) * 0.55 + _vn(x * 2.1, y * 2.1, s + 7) * 0.3 + _vn(x * 4.3, y * 4.3, s + 13) * 0.15
+
+
+## Betongplate med fas i kantene, tilslag (prikker) og flekkete overflate.
+static func _concrete(img: Image, ox: int, oy: int, base: Color, s: int) -> void:
+	for y in 16:
+		for x in 16:
+			var f := 0.86 + 0.22 * _fbm(x / 6.0 + ox, y / 6.0, s)
+			var h := _h(x + ox, y, s + 99)
+			if h < 0.05:
+				f += 0.1
+			elif h < 0.09:
+				f -= 0.09
+			var c := _shade(base, f)
+			# Fasen: mørk fuge oppe/venstre, lys kant nede/høyre.
+			if y == 0 or x == 0:
+				c = _shade(base, 0.52)
+			elif y == 1 or x == 1:
+				c = _shade(c, 0.88)
+			elif y == 15 or x == 15:
+				c = _shade(c, 1.1)
+			img.set_pixel(ox + x, oy + y, c)
+
+
+## Sprekk (tilfeldig gange) med lys kant ved siden av, så den ser dyp ut i lyset.
+static func _crack(img: Image, ox: int, oy: int, s: int, base: Color) -> void:
+	var x := ox + 4 + int(_h(1, 2, s) * 6)
+	for y in range(oy + 2, oy + 15):
+		_px(img, x, y, _shade(base, 0.38))
+		_px(img, x + 1, y, _shade(base, 1.18))
+		if _h(x, y, s) < 0.35:
+			x += 1 if _h(y, x, s) < 0.5 else -1
+			x = clampi(x, ox + 2, ox + 12)
+			_px(img, x, y, _shade(base, 0.45))
+	# en liten gren
+	var bx := ox + 9
+	for y in range(oy + 6, oy + 10):
+		_px(img, bx, y, _shade(base, 0.5))
+		bx += 1
+
+
+static func _blob(img: Image, ox: int, oy: int, cx: float, cy: float, r: float, s: int, col: Color, rim := Color(0, 0, 0, 0)) -> void:
+	for y in 16:
+		for x in 16:
+			var d := Vector2(x - cx, (y - cy) * 1.25).length()
+			var edge := r * (0.75 + 0.45 * _vn(x / 3.0, y / 3.0, s))
+			if d < edge:
+				_px(img, ox + x, oy + y, col)
+			elif rim.a > 0.0 and d < edge + 1.0:
+				_px(img, ox + x, oy + y, rim)
+
+
 static func _tiles_basement() -> Image:
 	var img := _img(128, 32)
-	var floor_c := Color8(56, 58, 60)
+	var floor_c := Color8(62, 63, 64)
 	# (0..3,0) betonggulv + varianter
 	for i in 4:
 		var ox := i * 16
-		_rect(img, ox, 0, 16, 16, floor_c)
-		_noise(img, ox, 0, 16, 16, 0.025)
-		_rect(img, ox, 0, 16, 1, _shade(floor_c, 0.8))
-		_rect(img, ox, 0, 1, 16, _shade(floor_c, 0.85))
-		if i == 1:  # sprekk
-			var x := ox + 3
-			for y in range(2, 14):
-				_px(img, x, y, _shade(floor_c, 0.55))
-				x += rng.randi_range(-1, 1) if x > ox + 2 and x < ox + 13 else 0
-		elif i == 2:  # flekk
-			for y in range(4, 13):
-				for x in range(ox + 4, ox + 13):
-					if Vector2(x - ox - 8, (y - 8) * 1.3).length() < 4.5 + rng.randf() * 0.8:
-						_px(img, x, y, Color(0.15, 0.2, 0.12, 0.35))
-		elif i == 3:  # småstein / skitt
-			for k in 6:
-				_px(img, ox + rng.randi_range(2, 13), rng.randi_range(2, 13), _shade(floor_c, 0.6))
-	# (4,0) våt flekk
-	_rect(img, 64, 0, 16, 16, _shade(floor_c, 0.75))
-	_noise(img, 64, 0, 16, 16, 0.03)
-	for y in 16:
-		for x in range(64, 80):
-			if Vector2(x - 72, y - 8).length() < 6.0:
-				_px(img, x, y, Color(0.1, 0.16, 0.12, 0.45))
-	# (5,0) trapp
-	for s in 4:
-		var c := _shade(Color8(80, 80, 82), 1.15 - s * 0.12)
-		_rect(img, 80, s * 4, 16, 4, c)
-		_rect(img, 80, s * 4 + 3, 16, 1, _shade(c, 0.6))
-	_rect(img, 80, 0, 1, 16, Color8(40, 40, 42))
-	_rect(img, 95, 0, 1, 16, Color8(40, 40, 42))
+		_concrete(img, ox, 0, floor_c, 11 + i)
+		match i:
+			1:
+				_crack(img, ox, 0, 5, floor_c)
+			2:  # oljeflekk med regnbuekant
+				_blob(img, ox, 0, 8.0, 8.5, 5.0, 21, Color(0.08, 0.08, 0.1, 0.5), Color(0.35, 0.25, 0.45, 0.25))
+				_blob(img, ox, 0, 7.0, 8.0, 2.5, 22, Color(0.04, 0.04, 0.06, 0.4))
+			3:  # grus, papirbit og en sigarettstump
+				for k in 9:
+					var px := ox + 2 + int(_h(k, 1, 31) * 12)
+					var py := 2 + int(_h(k, 2, 31) * 12)
+					_px(img, px, py, _shade(floor_c, 0.5 if k % 2 else 1.35))
+				_rect(img, ox + 9, 4, 3, 2, Color8(150, 146, 132))
+				_px(img, ox + 11, 5, Color8(110, 106, 96))
+				_rect(img, ox + 3, 11, 3, 1, Color8(200, 196, 180))
+				_px(img, ox + 6, 11, Color8(170, 110, 60))
+	# (4,0) fuktig flekk: mørkere, blålig, med glans
+	_concrete(img, 64, 0, _shade(floor_c, 0.82), 41)
+	_blob(img, 64, 0, 8.0, 8.0, 6.0, 42, Color(0.05, 0.1, 0.14, 0.5), Color(0.1, 0.14, 0.16, 0.25))
+	for p: Vector2i in [Vector2i(70, 6), Vector2i(71, 6), Vector2i(74, 10)]:
+		_px(img, p.x, p.y, Color(0.75, 0.82, 0.9, 0.55))
+	# (5,0) trapp med metallkant på hvert trinn
+	for st in 4:
+		var y := st * 4
+		var tread := _shade(Color8(84, 84, 86), 1.18 - st * 0.13)
+		_rect(img, 80, y, 16, 3, tread)
+		_noise(img, 80, y, 16, 3, 0.02)
+		_rect(img, 80, y, 16, 1, Color8(150, 152, 158))
+		_rect(img, 80, y + 3, 16, 1, _shade(tread, 0.45))
+	_rect(img, 80, 0, 2, 16, Color8(34, 34, 37))
+	_rect(img, 94, 0, 2, 16, Color8(34, 34, 37))
 	# (6,0) svart
 	_rect(img, 96, 0, 16, 16, Color.BLACK)
-	# (7,0) mørkt, fuktig gulv med rist
-	_rect(img, 112, 0, 16, 16, _shade(floor_c, 0.7))
-	_noise(img, 112, 0, 16, 16, 0.03)
-	for k in range(4, 12, 2):
-		_rect(img, 116, k, 8, 1, Color8(22, 22, 24))
+	# (7,0) sluk med rist og rustring
+	_concrete(img, 112, 0, _shade(floor_c, 0.8), 71)
+	_rect(img, 114, 2, 12, 12, Color8(92, 58, 38))
+	_rect(img, 115, 3, 10, 10, Color8(48, 46, 46))
+	for k in range(3, 13, 2):
+		_rect(img, 115, k, 10, 1, Color8(10, 10, 12))
+	_rect(img, 115, 3, 10, 1, Color8(110, 108, 106))
+	_rect(img, 115, 3, 1, 10, Color8(80, 78, 76))
 
-	# (0,1) toppen av vegg (mørk)
-	_rect(img, 0, 16, 16, 16, Color8(18, 18, 21))
-	_noise(img, 0, 16, 16, 16, 0.01)
-	# (1,1)/(2,1) nedre vegg: betongblokker
+	# (0,1) toppen av vegg: nesten svart betong med lys leppe nederst
+	for y in 16:
+		for x in 16:
+			img.set_pixel(x, 16 + y, _shade(Color8(20, 20, 23), 0.85 + 0.3 * _fbm(x / 4.0, y / 4.0, 81)))
+	_rect(img, 0, 31, 16, 1, Color8(40, 40, 44))
+	# (1,1)/(2,1) nedre vegg, (3,1)/(4,1) øvre vegg: murstein
 	for v in 2:
-		var ox := 16 + v * 16
-		_block_wall(img, ox, 16, Color8(74, 76, 74), 1.0)
-		_rect(img, ox, 29, 16, 3, Color8(30, 30, 32))
-		if v == 1:  # rør
-			_rect(img, ox + 10, 16, 3, 13, Color8(96, 62, 42))
-			_rect(img, ox + 10, 16, 1, 13, Color8(130, 90, 60))
-			_rect(img, ox + 9, 22, 5, 2, Color8(70, 45, 30))
-	# (3,1)/(4,1) øvre vegg
+		_bricks(img, 16 + v * 16, 16, Color8(86, 84, 80), 0.88, 1.0, 101 + v)
+		_grime(img, 16 + v * 16, 16, 103 + v)
+		_rect(img, 16 + v * 16, 29, 16, 3, Color8(26, 26, 28))
+		_rect(img, 16 + v * 16, 29, 16, 1, Color8(48, 48, 50))
+	# rør med brakett og rustrenner
+	_rect(img, 42, 16, 3, 13, Color8(104, 66, 42))
+	_rect(img, 42, 16, 1, 13, Color8(150, 104, 70))
+	_rect(img, 44, 16, 1, 13, Color8(66, 40, 26))
+	_rect(img, 41, 21, 5, 2, Color8(60, 58, 58))
+	_px(img, 43, 21, Color8(140, 140, 140))
+	for y in range(23, 29):
+		_px(img, 43, y, Color(0.45, 0.25, 0.12, 0.35 * (29 - y) / 6.0))
 	for v in 2:
-		var ox := 48 + v * 16
-		_block_wall(img, ox, 16, Color8(66, 68, 66), 0.75)
-		if v == 1:
-			_rect(img, ox, 20, 16, 3, Color8(60, 64, 70))
-			_rect(img, ox, 20, 16, 1, Color8(95, 100, 108))
+		_bricks(img, 48 + v * 16, 16, Color8(76, 75, 72), 0.55, 0.9, 111 + v)
+		_grime(img, 48 + v * 16, 16, 113 + v)
+	# to rør på tvers
+	for py: int in [19, 24]:
+		_rect(img, 64, py, 16, 3, Color8(70, 76, 84))
+		_rect(img, 64, py, 16, 1, Color8(128, 136, 148))
+		_rect(img, 64, py + 2, 16, 1, Color8(36, 38, 44))
+	_rect(img, 70, 18, 2, 10, Color8(46, 46, 48))
+	_px(img, 70, 20, Color8(150, 150, 150))
+	_px(img, 70, 25, Color8(150, 150, 150))
 	return img
 
 
-static func _block_wall(img: Image, ox: int, oy: int, base: Color, top_dark: float) -> void:
+## Murstein 8x4 med fuger, ulik farge per stein og skygge mot taket.
+static func _bricks(img: Image, ox: int, oy: int, base: Color, top: float, bottom: float, s: int) -> void:
 	for y in 16:
-		var f := lerpf(top_dark, 1.0, y / 15.0)
-		for x in 16:
-			_px(img, ox + x, oy + y, _shade(base, f))
-	_noise(img, ox, oy, 16, 16, 0.02)
-	var mortar := _shade(base, 0.7)
-	for row in 4:
-		var y := oy + row * 4 + 3
-		_rect(img, ox, y, 16, 1, mortar)
+		var row := y / 4
 		var shift := 0 if row % 2 == 0 else 4
-		for x in range(shift, 16, 8):
-			_rect(img, ox + x, y - 3, 1, 3, mortar)
+		var light := lerpf(top, bottom, y / 15.0)
+		for x in 16:
+			var bx := (x + shift) / 8
+			var tone := 0.84 + 0.3 * _h(bx + ox, row, s)
+			var warm := _h(bx + ox, row, s + 1)
+			var c := Color(base.r * (1.0 + (warm - 0.5) * 0.12), base.g, base.b * (1.0 - (warm - 0.5) * 0.1))
+			c = _shade(c, tone * light * (0.93 + 0.12 * _vn(x / 2.0 + ox, y / 2.0, s + 5)))
+			var mortar_row := y % 4 == 3
+			var mortar_col := (x + shift) % 8 == 7
+			if mortar_row or mortar_col:
+				c = _shade(base, 0.48 * light)
+			elif y % 4 == 0:
+				c = _shade(c, 1.12)  # lys overkant på steinen
+			img.set_pixel(ox + x, oy + y, c)
+
+
+## Fuktstriper som renner nedover veggen.
+static func _grime(img: Image, ox: int, oy: int, s: int) -> void:
+	for k in 2:
+		var x := ox + 2 + int(_h(k, 0, s) * 12)
+		var length := 5 + int(_h(k, 1, s) * 9)
+		for y in length:
+			_px(img, x, oy + y, Color(0.05, 0.09, 0.05, 0.28 * (1.0 - float(y) / length)))
 
 
 static func _tiles_school() -> Image:
 	var img := _img(128, 32)
-	var lino := Color8(118, 122, 112)
+	var lino := Color8(126, 130, 120)
 	for i in 4:
 		var ox := i * 16
-		var c := lino if i != 3 else _shade(lino, 0.93)
-		_rect(img, ox, 0, 16, 16, c)
-		_noise(img, ox, 0, 16, 16, 0.015)
-		_rect(img, ox, 0, 16, 1, _shade(c, 0.85))
-		_rect(img, ox, 0, 1, 16, _shade(c, 0.85))
-		_rect(img, ox + 7, 7, 2, 2, _shade(c, 0.8))
-		if i == 1:
-			for k in 5:
-				_px(img, ox + 3 + k * 2, 11 + (k % 2), _shade(c, 0.75))
-		elif i == 2:
-			_rect(img, ox + 2, 3, 3, 1, _shade(c, 0.8))
-	# (4,0) rødt teppe
-	var red := Color8(110, 26, 32)
-	_rect(img, 64, 0, 16, 16, red)
-	_noise(img, 64, 0, 16, 16, 0.03)
+		for y in 16:
+			for x in 16:
+				var checker := 1.0 if ((x / 8 + y / 8) % 2 == 0) else 0.94
+				var f := checker * (0.95 + 0.08 * _fbm(x / 5.0 + ox, y / 5.0, 201 + i))
+				if _h(x + ox, y, 205) < 0.06:
+					f += 0.07 if _h(y, x + ox, 206) < 0.5 else -0.08
+				# glans: litt lysere mot øvre venstre
+				f += 0.04 * (1.0 - (x + y) / 30.0)
+				img.set_pixel(ox + x, y, _shade(lino, f))
+		_rect(img, ox, 0, 16, 1, _shade(lino, 0.72))
+		_rect(img, ox, 0, 1, 16, _shade(lino, 0.78))
+		match i:
+			1:  # skuremerker
+				for k in 6:
+					_px(img, ox + 3 + k * 2, 10 + (k % 2), Color8(60, 58, 56))
+			2:  # tyggis
+				_rect(img, ox + 4, 4, 2, 2, Color8(150, 140, 150))
+				_px(img, ox + 4, 4, Color8(190, 180, 190))
+			3:
+				_blob(img, ox, 0, 10.0, 6.0, 3.0, 211, Color(0.3, 0.28, 0.2, 0.2))
+	# (4,0) rødt teppe med gullmønster
+	var red := Color8(116, 28, 34)
+	for y in 16:
+		for x in 16:
+			img.set_pixel(64 + x, y, _shade(red, 0.85 + 0.25 * _h(x, y, 221)))
 	for k in range(0, 16, 4):
-		_px(img, 64 + k + 1, 1, Color8(170, 130, 60))
-		_px(img, 64 + k + 1, 14, Color8(170, 130, 60))
+		_px(img, 64 + k + 1, 1, Color8(180, 140, 66))
+		_px(img, 64 + k + 1, 14, Color8(180, 140, 66))
+		_px(img, 64 + k + 3, 8, Color8(140, 40, 46))
 	# (5,0) trapp
-	for s in 4:
-		var c := _shade(Color8(120, 110, 95), 1.1 - s * 0.12)
-		_rect(img, 80, s * 4, 16, 4, c)
-		_rect(img, 80, s * 4 + 3, 16, 1, _shade(c, 0.6))
+	for st in 4:
+		var c := _shade(Color8(126, 114, 98), 1.12 - st * 0.12)
+		_rect(img, 80, st * 4, 16, 4, c)
+		_rect(img, 80, st * 4, 16, 1, Color8(170, 170, 160))
+		_rect(img, 80, st * 4 + 3, 16, 1, _shade(c, 0.55))
 	_rect(img, 96, 0, 16, 16, Color.BLACK)
-	_rect(img, 112, 0, 16, 16, _shade(lino, 0.85))
-	_noise(img, 112, 0, 16, 16, 0.02)
+	for y in 16:
+		for x in 16:
+			img.set_pixel(112 + x, y, _shade(lino, 0.82 + 0.08 * _fbm(x / 4.0, y / 4.0, 231)))
 
-	_rect(img, 0, 16, 16, 16, Color8(28, 24, 22))
-	# nedre vegg: brunt panel
+	for y in 16:
+		for x in 16:
+			img.set_pixel(x, 16 + y, _shade(Color8(30, 26, 24), 0.85 + 0.3 * _fbm(x / 4.0, y / 4.0, 241)))
+	_rect(img, 0, 31, 16, 1, Color8(52, 44, 38))
+	# nedre vegg: brunt panel med treverk
 	for v in 2:
 		var ox := 16 + v * 16
-		var wood := Color8(92, 62, 42)
-		_rect(img, ox, 16, 16, 16, wood)
-		_noise(img, ox, 16, 16, 16, 0.02)
-		_rect(img, ox, 16, 16, 2, Color8(130, 95, 60))
-		_rect(img, ox + 1, 20, 6, 8, _shade(wood, 0.85))
-		_rect(img, ox + 9, 20, 6, 8, _shade(wood, 0.85))
+		var wood := Color8(96, 64, 42)
+		for y in 16:
+			for x in 16:
+				var grain := 0.88 + 0.2 * _vn(x / 1.5 + ox, y / 7.0, 251 + v)
+				img.set_pixel(ox + x, 16 + y, _shade(wood, grain))
+		_rect(img, ox, 16, 16, 2, Color8(140, 102, 64))
+		_rect(img, ox, 17, 16, 1, Color8(84, 56, 36))
+		for px: int in [1, 9]:
+			_rect(img, ox + px, 20, 6, 8, _shade(wood, 0.86))
+			_rect(img, ox + px, 20, 6, 1, _shade(wood, 0.62))
+			_rect(img, ox + px, 20, 1, 8, _shade(wood, 0.7))
+			_rect(img, ox + px, 27, 6, 1, _shade(wood, 1.15))
 		_rect(img, ox, 29, 16, 3, Color8(40, 28, 20))
 		if v == 1:  # radiator
-			_rect(img, ox + 2, 19, 12, 9, Color8(170, 170, 160))
+			_rect(img, ox + 2, 19, 12, 9, Color8(176, 176, 166))
 			for k in range(3, 14, 2):
-				_rect(img, ox + k, 19, 1, 9, Color8(130, 130, 122))
-	# øvre vegg: tapet med striper
+				_rect(img, ox + k, 19, 1, 9, Color8(126, 126, 118))
+			_rect(img, ox + 2, 19, 12, 1, Color8(210, 210, 200))
+	# øvre vegg: tapet med striper og flekker
 	for v in 2:
 		var ox := 48 + v * 16
-		var paper := Color8(108, 112, 78)
-		_rect(img, ox, 16, 16, 16, paper)
-		for x in range(0, 16, 4):
-			_rect(img, ox + x, 16, 1, 16, _shade(paper, 0.85))
-		_noise(img, ox, 16, 16, 16, 0.015)
+		var paper := Color8(112, 116, 82)
+		for y in 16:
+			for x in 16:
+				var f := 0.95 + 0.07 * _fbm(x / 4.0 + ox, y / 4.0, 261)
+				if x % 4 == 0:
+					f *= 0.86
+				f *= lerpf(0.82, 1.0, y / 15.0)
+				img.set_pixel(ox + x, 16 + y, _shade(paper, f))
 		if v == 1:  # oppslagstavle
-			_rect(img, ox + 2, 19, 12, 10, Color8(140, 100, 60))
-			_rect(img, ox + 4, 21, 4, 5, Color8(220, 220, 210))
-			_rect(img, ox + 9, 20, 3, 4, Color8(230, 210, 120))
+			_rect(img, ox + 2, 19, 12, 10, Color8(146, 104, 62))
+			_noise(img, ox + 2, 19, 12, 10, 0.03)
+			_rect(img, ox + 4, 21, 4, 5, Color8(226, 224, 214))
+			_rect(img, ox + 9, 20, 3, 4, Color8(232, 212, 120))
+			_px(img, ox + 5, 21, Color8(200, 40, 40))
+			_px(img, ox + 10, 20, Color8(40, 90, 200))
 			_outline(img, Rect2i(ox, 16, 16, 16), Color8(60, 40, 25))
 	return img
 
@@ -1061,11 +1196,115 @@ static func _env(i: int, n: int, attack := 0.01, power := 2.0) -> float:
 	return a * pow(1.0 - t, power)
 
 
+## Skosåle på betong: et hælklikk, et dunk og litt skrap etterpå.
 static func _snd_footstep() -> PackedFloat32Array:
-	var b := _buf(0.09)
+	var b := _buf(0.22)
+	var lp := 0.0
 	for i in b.size():
-		b[i] = rng.randf_range(-1, 1) * _env(i, b.size(), 0.02, 3.0) * 0.6
-	return _lowpass(b, 0.25)
+		var t := float(i) / RATE
+		var click := rng.randf_range(-1, 1) * exp(-t * 260.0) * 0.9
+		var thump := sin(TAU * 95.0 * t * (1.0 - t * 2.0)) * exp(-t * 45.0) * 0.55
+		lp += (rng.randf_range(-1, 1) - lp) * 0.18
+		var scuff := lp * exp(-maxf(t - 0.03, 0.0) * 28.0) * 0.5 * (1.0 if t > 0.02 else 0.0)
+		b[i] = click + thump + scuff
+	return _lowpass(b, 0.55)
+
+
+## Fottrinn i vann: plask med høye dråper.
+static func _snd_footstep_wet() -> PackedFloat32Array:
+	var b := _snd_footstep()
+	var n := b.size()
+	for k in 6:
+		var start := int(rng.randf_range(0.01, 0.12) * RATE)
+		var f := rng.randf_range(1400.0, 3200.0)
+		for i in range(start, mini(start + int(0.05 * RATE), n)):
+			var t := float(i - start) / RATE
+			b[i] += sin(TAU * f * t * (1.0 + t * 6.0)) * exp(-t * 70.0) * 0.12
+	for i in n:
+		var t := float(i) / RATE
+		b[i] += rng.randf_range(-1, 1) * exp(-t * 18.0) * 0.25
+	return b
+
+
+## Én vanndråpe som treffer en dam: "plink" som glir ned i tone.
+static func _snd_drip() -> PackedFloat32Array:
+	var b := _buf(0.6)
+	var phase := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		phase += TAU * (1900.0 * exp(-t * 9.0) + 700.0) / RATE
+		b[i] = sin(phase) * exp(-t * 14.0) * 0.45 + rng.randf_range(-1, 1) * exp(-t * 400.0) * 0.2
+	return b
+
+
+## Metallisk bank i rørene (uharmoniske overtoner som ringer ut), 2-3 slag.
+static func _snd_pipe_knock() -> PackedFloat32Array:
+	var b := _buf(2.2)
+	var hits := [0.0, 0.32, 0.55] if rng.randf() < 0.5 else [0.0, 0.41]
+	for h: float in hits:
+		var start := int(h * RATE)
+		var amp := rng.randf_range(0.5, 0.8)
+		for i in range(start, b.size()):
+			var t := float(i - start) / RATE
+			var ring := sin(TAU * 310.0 * t) * 0.5 + sin(TAU * 731.0 * t) * 0.3 + sin(TAU * 1187.0 * t) * 0.18 + sin(TAU * 1720.0 * t) * 0.1
+			b[i] += (ring * exp(-t * 5.5) + rng.randf_range(-1, 1) * exp(-t * 300.0)) * amp * 0.35
+	return _lowpass(b, 0.5)
+
+
+## Knirk: treg sagtann med ujevn friksjon (gamle hyller / dør langt unna).
+static func _snd_creak() -> PackedFloat32Array:
+	var b := _buf(1.6)
+	var phase := 0.0
+	var jitter := 0.0
+	for i in b.size():
+		var t := float(i) / b.size()
+		jitter += (rng.randf_range(-1, 1) - jitter) * 0.002
+		var f := 95.0 + 60.0 * sin(t * PI) + jitter * 400.0
+		phase += f / RATE
+		var saw := fmod(phase, 1.0) * 2.0 - 1.0
+		var grip := 0.5 + 0.5 * signf(sin(phase * TAU * 0.25))
+		b[i] = saw * grip * sin(PI * t) * 0.35
+	return _lowpass(_lowpass(b, 0.25), 0.4)
+
+
+## Dempede fottrinn et sted i bygget (noen andre går der).
+static func _snd_distant_steps() -> PackedFloat32Array:
+	var b := _buf(3.0)
+	var t0 := 0.15
+	for k in 5:
+		var start := int(t0 * RATE)
+		for i in range(start, mini(start + int(0.18 * RATE), b.size())):
+			var t := float(i - start) / RATE
+			b[i] += (sin(TAU * 70.0 * t) * 0.8 + rng.randf_range(-0.5, 0.5)) * exp(-t * 30.0) * (0.5 + k * 0.08)
+		t0 += rng.randf_range(0.45, 0.6)
+	return _lowpass(_lowpass(b, 0.06), 0.1)
+
+
+## Rotte: rask skraping med klør og et lite pip.
+static func _snd_rat() -> PackedFloat32Array:
+	var b := _buf(1.1)
+	for i in b.size():
+		var t := float(i) / RATE
+		var claws := rng.randf_range(-1, 1) * (1.0 if fmod(t, 0.045) < 0.012 else 0.0) * 0.4 * sin(PI * minf(t / 0.7, 1.0))
+		b[i] = claws
+	var start := int(0.8 * RATE)
+	for i in range(start, b.size()):
+		var t := float(i - start) / RATE
+		b[i] += sin(TAU * (3200.0 + 900.0 * sin(t * 60.0)) * t) * 0.12 * sin(PI * minf(t / 0.12, 1.0))
+	return _lowpass(b, 0.6)
+
+
+## Trekk gjennom ventilasjonen: filtrert sus som sveller opp og ned.
+static func _snd_vent() -> PackedFloat32Array:
+	var b := _buf(4.0)
+	var lp := 0.0
+	var lp2 := 0.0
+	for i in b.size():
+		var t := float(i) / RATE
+		lp += (rng.randf_range(-1, 1) - lp) * (0.04 + 0.03 * sin(t * 2.1))
+		lp2 += (lp - lp2) * 0.3
+		b[i] = lp2 * 2.2 * sin(PI * t / 4.0) * (0.7 + 0.3 * sin(t * 5.3))
+	return b
 
 
 static func _snd_push() -> PackedFloat32Array:
@@ -1090,23 +1329,45 @@ static func _snd_hum() -> PackedFloat32Array:
 	return b
 
 
+## Kjellerens grunntone: to svevende basstoner, rumling, sus fra ventilasjonen og en
+## fjern metallisk klang. Slutten blandes inn i starten så loopen ikke klikker.
 static func _snd_drone() -> PackedFloat32Array:
-	var b := _buf(8.0)
-	var noise := 0.0
-	for i in b.size():
+	var seconds := 12.0
+	var b := _buf(seconds)
+	var n := b.size()
+	var rumble := 0.0
+	var air := 0.0
+	var air2 := 0.0
+	for i in n:
 		var t := float(i) / RATE
-		noise += (rng.randf_range(-1, 1) - noise) * 0.01
-		var swell := 0.75 + 0.25 * sin(TAU * t / 8.0)
-		b[i] = (sin(TAU * 55.0 * t) * 0.22 + sin(TAU * 58.25 * t) * 0.18 + sin(TAU * 82.5 * t) * 0.06 + noise * 0.8) * swell
+		rumble += (rng.randf_range(-1, 1) - rumble) * 0.004
+		air += (rng.randf_range(-1, 1) - air) * 0.05
+		air2 += (air - air2) * 0.2
+		var swell := 0.7 + 0.3 * sin(TAU * t / seconds)
+		var tones := sin(TAU * 55.0 * t) * 0.2 + sin(TAU * 58.25 * t) * 0.15 \
+			+ sin(TAU * 82.5 * t) * 0.05 + sin(TAU * 27.5 * t) * 0.14
+		var clang := sin(TAU * 412.0 * t) * 0.025 * maxf(0.0, sin(TAU * t / seconds * 2.0)) ** 6
+		b[i] = (tones * swell + rumble * 1.6 + air2 * 0.22 * (0.6 + 0.4 * sin(TAU * t / 6.0)) + clang)
+	# Myk skjøt: bland slutten inn i starten.
+	var fade := int(0.5 * RATE)
+	for i in fade:
+		var k := float(i) / fade
+		b[i] = b[i] * k + b[n - fade + i] * (1.0 - k)
+	b.resize(n - fade)
 	return b
 
 
+## Lysrør som blinker: 100 Hz brumming med overtoner, sprak og korte utfall.
 static func _snd_flicker() -> PackedFloat32Array:
-	var b := _buf(0.35)
+	var b := _buf(0.5)
+	var on := 1.0
 	for i in b.size():
 		var t := float(i) / RATE
-		var on := 1.0 if rng.randf() < 0.85 else 0.0
-		b[i] = (signf(sin(TAU * 120.0 * t)) * 0.15 + rng.randf_range(-0.2, 0.2)) * on * _env(i, b.size(), 0.01, 0.6)
+		if i % 220 == 0:
+			on = 1.0 if rng.randf() < 0.75 else 0.0
+		var buzz := signf(sin(TAU * 100.0 * t)) * 0.08 + sin(TAU * 200.0 * t) * 0.08 + sin(TAU * 300.0 * t) * 0.04
+		var crackle := rng.randf_range(-1, 1) * (0.5 if rng.randf() < 0.01 else 0.06)
+		b[i] = (buzz + crackle) * on * _env(i, b.size(), 0.01, 0.5)
 	return b
 
 

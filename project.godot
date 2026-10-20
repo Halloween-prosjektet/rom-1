@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 _mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
 Config="*res://scripts/autoload/config.gd"
+Gfx="*res://scripts/autoload/gfx.gd"
 Text="*res://scripts/autoload/text.gd"
 Sfx="*res://scripts/autoload/sfx.gd"
 Screen="*res://scripts/autoload/screen.gd"

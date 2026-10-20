@@ -63,7 +63,8 @@ func step(dir: Vector2i) -> bool:
 	_parity = not _parity
 	_set_frame(0 if _parity else 2)
 	if footstep_volume_db > -100.0:
-		Sfx.play("footstep", footstep_volume_db, randf_range(0.85, 1.15))
+		var wet := WetFloor.current != null and WetFloor.current.is_wet(target)
+		Sfx.play("footstep_wet" if wet else "footstep", footstep_volume_db, randf_range(0.85, 1.15))
 	get_tree().create_timer(step_time * 0.55).timeout.connect(func() -> void:
 		if is_moving: _set_frame(1))
 	await move_to_cell(target, step_time)

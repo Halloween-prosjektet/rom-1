@@ -11,6 +11,13 @@ var _path: Array[Vector2i] = []
 var _pending_target := Vector2i.ZERO
 var _has_pending := false
 var _busy := false
+## Lommelykt (lyskjegle i gåretningen). Lages av enable_torch().
+var torch: PointLight2D
+var _torch_scale := 1.0
+var _flicker_timer := 6.0
+var _time := 0.0
+
+static var _cone_tex: Texture2D
 
 @onready var light: PointLight2D = $Light
 @onready var camera: Camera2D = $Camera
@@ -21,6 +28,7 @@ func _ready() -> void:
 	add_to_group("player")
 	light.texture = LightTex.radial()
 	light.texture_scale = light_scale
+	Gfx.setup_player_light(light, 48.0, false)
 
 
 func _on_setup() -> void:
@@ -31,12 +39,78 @@ func _on_setup() -> void:
 	camera.reset_smoothing()
 
 
+func enable_torch() -> void:
+	if torch:
+		return
+	torch = PointLight2D.new()
+	torch.name = "Torch"
+	torch.texture = _cone()
+	torch.color = Color(1.0, 0.95, 0.85)
+	torch.energy = 1.45
+	torch.texture_scale = 0.8
+	_torch_scale = torch.texture_scale
+	torch.position = Vector2(0, -6)
+	torch.rotation = Vector2(facing).angle()
+	Gfx.setup_player_light(torch, 40.0, true)
+	# Lommelykta lyser opp verden, ikke spilleren som holder den.
+	sprite.light_mask = Gfx.LIT_PLAYER
+	torch.range_item_cull_mask = Gfx.LIT_WORLD
+	light.range_item_cull_mask = Gfx.LIT_WORLD | Gfx.LIT_PLAYER
+	add_child(torch)
+	# Nærlyset rundt spilleren dempes litt, så kjeglen synes.
+	light.energy = 0.8
+
+
+func _process(delta: float) -> void:
+	_time += delta
+	# Litt "håndholdt" kamera.
+	camera.position = Vector2(sin(_time * 0.63) * 0.9, sin(_time * 0.81 + 1.3) * 0.7)
+	if torch == null:
+		return
+	torch.rotation = lerp_angle(torch.rotation, Vector2(facing).angle(), minf(delta * 12.0, 1.0))
+	# Av og til flimrer lommelykta (dårlig kontakt).
+	_flicker_timer -= delta
+	if _flicker_timer <= 0.0:
+		_flicker_timer = randf_range(9.0, 22.0)
+		var tw := create_tween()
+		for i in randi_range(2, 4):
+			tw.tween_property(torch, "energy", randf_range(0.1, 0.5), 0.04)
+			tw.tween_property(torch, "energy", 1.45, 0.06)
+
+
 ## 0 = standard lysradius.
 func set_light_scale(s: float) -> void:
 	var target := light_scale if s <= 0.0 else s
 	if is_equal_approx(light.texture_scale, target):
 		return
 	create_tween().tween_property(light, "texture_scale", target, 0.8)
+	if torch:
+		var k := target / light_scale
+		create_tween().tween_property(torch, "texture_scale", _torch_scale * clampf(k * 1.4, 0.5, 1.0), 0.8)
+
+
+## Lyskjegle som peker mot +x fra midten av teksturen (så lyset roterer rundt spilleren).
+static func _cone() -> Texture2D:
+	if _cone_tex:
+		return _cone_tex
+	var size := 256
+	var img := Image.create_empty(size, size, false, Image.FORMAT_RGBA8)
+	var half := deg_to_rad(26.0)
+	for y in size:
+		for x in size:
+			var v := Vector2(x - size / 2.0, y - size / 2.0)
+			var r := v.length() / (size / 2.0)
+			var a := 0.0
+			if v.x > 0.0 and r < 1.0:
+				var ang := absf(v.angle())
+				var edge := clampf((half - ang) / (half * 0.45), 0.0, 1.0)
+				var hot := 1.0 + 0.6 * clampf(1.0 - ang / (half * 0.35), 0.0, 1.0)
+				a = edge * pow(1.0 - r, 1.4) * hot
+			# litt lys rundt hånda også
+			a = maxf(a, clampf(1.0 - r * 9.0, 0.0, 1.0) * 0.12)
+			img.set_pixel(x, y, Color(1, 1, 1, clampf(a, 0.0, 1.0)))
+	_cone_tex = ImageTexture.create_from_image(img)
+	return _cone_tex
 
 
 func _can_act() -> bool:

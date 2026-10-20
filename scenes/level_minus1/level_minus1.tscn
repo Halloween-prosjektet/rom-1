@@ -21,6 +21,13 @@ ambience_sound = "ambience_drone"
 ambience_volume_db = -4.0
 location_key = "location_basement"
 stairs_text_key = "l1.stairs_locked"
+floor_gloss = 0.3
+puddles = 3.0
+fog_density = 0.24
+reverb_room = 0.8
+reverb_wet = 0.24
+ambient_pool = PackedStringArray("drip", "drip", "pipe_knock", "creak", "distant_steps", "rat", "vent")
+player_torch = true
 
 [node name="Entities" type="Node2D" parent="." unique_id=232791143]
 y_sort_enabled = true

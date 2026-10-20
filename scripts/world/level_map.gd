@@ -47,6 +47,21 @@ const SOLID_TILES := "# ="
 ## Dialog når man undersøker trappa ('=').
 @export var stairs_text_key := ""
 
+@export_group("Grafikk og lyd")
+## Hvor blankt gulvet er overalt (0 = matt, 1 = speilblankt). Se Gfx / WetFloor.
+@export_range(0.0, 1.0) var floor_gloss := 0.0
+## Vanndammer per 100 gulvruter (pluss alle ',' i kartet).
+@export var puddles := 0.0
+## Tåke som driver i lufta (0 = av).
+@export_range(0.0, 1.0) var fog_density := 0.0
+## Romklang: størrelse og mengde (0..1).
+@export_range(0.0, 1.0) var reverb_room := 0.4
+@export_range(0.0, 1.0) var reverb_wet := 0.1
+## Tilfeldige lyder rundt spilleren (navn i assets/audio/).
+@export var ambient_pool: PackedStringArray = []
+## Spilleren har lommelykt (lyskjegle i gåretningen).
+@export var player_torch := false
+
 var map_size := Vector2i.ZERO
 var tile_layer: TileMapLayer
 var player: Player
@@ -83,6 +98,9 @@ func _ready() -> void:
 		player.stepped.connect(_on_player_stepped)
 	for room in get_tree().get_nodes_in_group("puzzle_room"):
 		room.setup(self)
+	Gfx.decorate_level(self)
+	if player and player_torch:
+		player.enable_torch()
 
 	if ambience_sound != "":
 		Sfx.play_loop(ambience_sound, ambience_volume_db)

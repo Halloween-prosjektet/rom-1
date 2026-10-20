@@ -17,6 +17,9 @@ ambient_color = Color(0.5, 0.5, 0.56, 1)
 ambience_sound = "hum"
 ambience_volume_db = -14.0
 location_key = "location_school"
+floor_gloss = 0.5
+reverb_room = 0.45
+reverb_wet = 0.1
 
 [node name="Entities" type="Node2D" parent="."]
 y_sort_enabled = true

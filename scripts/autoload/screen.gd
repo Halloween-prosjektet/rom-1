@@ -17,6 +17,40 @@ void fragment() {
 }
 """
 
+## Etterbehandling av spillverdenen (under HUD og dialog): bloom rundt sterkt lys,
+## litt fargeforskyvning mot kantene (linse) og fargegradering (kalde skygger,
+## varme høylys). Bare med graphics = "high".
+const LENS_SHADER := """
+shader_type canvas_item;
+uniform sampler2D screen_tex : hint_screen_texture, filter_linear;
+uniform float bloom = 0.75;
+uniform float threshold = 0.5;
+uniform float aberration = 1.1;
+void fragment() {
+	vec2 uv = SCREEN_UV;
+	vec2 px = SCREEN_PIXEL_SIZE;
+	vec2 c = uv - 0.5;
+	vec2 ca = c * dot(c, c) * 4.0 * aberration * px * 2.0;
+	vec3 col;
+	col.r = texture(screen_tex, uv + ca).r;
+	col.g = texture(screen_tex, uv).g;
+	col.b = texture(screen_tex, uv - ca).b;
+	vec3 glow = vec3(0.0);
+	for (int i = 0; i < 12; i++) {
+		float a = float(i) * 0.5236 + 0.26;
+		vec2 o = vec2(cos(a), sin(a)) * px;
+		glow += max(texture(screen_tex, uv + o * 3.0).rgb - threshold, 0.0);
+		glow += max(texture(screen_tex, uv + o * 8.0).rgb - threshold, 0.0) * 0.6;
+	}
+	col += glow / 12.0 * bloom;
+	float l = dot(col, vec3(0.299, 0.587, 0.114));
+	col *= mix(vec3(0.86, 0.98, 1.1), vec3(1.07, 1.0, 0.9), smoothstep(0.05, 0.6, l));
+	// Kontrast rundt en lav midtverdi, så mørke partier ikke knuses til svart.
+	col = (col - 0.18) * 1.1 + 0.18;
+	COLOR = vec4(max(col, vec3(0.0)), 1.0);
+}
+"""
+
 const GLITCH_SHADER := """
 shader_type canvas_item;
 uniform sampler2D screen_tex : hint_screen_texture, filter_nearest;
@@ -53,6 +87,12 @@ var _location_tween: Tween
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_setup_theme()
+
+	if Gfx.high:
+		var lens_layer := CanvasLayer.new()
+		lens_layer.layer = 40
+		add_child(lens_layer)
+		_full_rect(lens_layer, LENS_SHADER)
 
 	_effects_layer = CanvasLayer.new()
 	_effects_layer.layer = 70

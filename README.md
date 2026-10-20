@@ -178,6 +178,26 @@ CONTROL_ROOM_PI_ID=1
 5. Autostart (Raspberry Pi OS / labwc): legg til
    `/home/pi/kjelleren/kjelleren.arm64` i `~/.config/labwc/autostart`.
 
+## Grafikk og lyd (effekter)
+
+`scripts/autoload/gfx.gd` (`Gfx`) pynter nivåene når de lastes. Alt styres fra
+innstillingene på rotnoden i nivåscenen (Inspector › *Grafikk og lyd*):
+
+| Effekt | Hvor | Innstilling |
+| --- | --- | --- |
+| Relieff og glans i lyset (normal maps lages automatisk fra grafikken) | tiles, figurer, rekvisitter | – |
+| Skygger fra vegger og høye møbler (hyller, kasser, pulter …) | alle lys | – |
+| Synlige lysrør med glorie, støv i lyset og lysstripe i vått gulv | `L` / `l` i kartet | – |
+| Vått / blankt gulv med speilbilder av figurer og møbler | `scripts/fx/wet_floor.gd` | `floor_gloss`, `puddles` (+ `,` i kartet) |
+| Lommelykt som følger gåretningen og flimrer av og til | spilleren | `player_torch` |
+| Tåke og støv i lufta | `scripts/fx/atmosphere.gd` | `fog_density` |
+| Bloom, linse og fargegradering | `Screen` (lag 40, under HUD og dialog) | – |
+| Romklang og tilfeldige lyder rundt spilleren (drypp, rør, knirk …) | `Sfx`, `scripts/fx/ambient_sounds.gd` | `reverb_room`, `reverb_wet`, `ambient_pool` |
+| Plask når man går i en vanndam | `Actor` | – |
+
+Hakker spillet på Pi-en, sett `graphics="low"` under `[display]` i `station.cfg`.
+Da slås skygger, speilbilder, tåke, partikler og bloom av.
+
 ## Utvikling
 
 - Godot AI-pluginen (`addons/godot_ai`) er bare et editorverktøy for AI-assistert
