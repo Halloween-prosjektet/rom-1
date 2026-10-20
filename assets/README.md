@@ -1,6 +1,7 @@
 # Grafikk og lyd – spesifikasjon for designgruppa
 
-Alt i denne mappa er **plassholdere**, laget i kode av `tools/placeholder_art.gd`.
+Alt i denne mappa er **plassholdere**, laget i kode av `tools/placeholder_art.gd`
+(unntatt spilleren, `characters/student.png` – se under).
 For å bytte inn ekte grafikk legger du en fil med **samme navn og samme størrelse**
 oppå den gamle. Du trenger ikke endre noe i koden.
 
@@ -30,12 +31,28 @@ den igjen får "øverste flate", resten får "topp".
 
 ## Personer – `characters/*.png`
 
-48×96 piksler: 3 kolonner × 4 rader med figurer på 16×24.
+Alle personark har 3 kolonner × 4 rader:
 
 - Kolonner: steg A, stå stille, steg B
 - Rader: ned (mot kamera), venstre, høyre, opp (ryggen)
 
-Filer: `student.png` (spilleren), `teacher.png`, `receptionist.png`.
+Figuren står nederst i ruta (føttene på nederste pikselrad).
+
+| Fil | Arkstørrelse | Rute | Merknad |
+|---|---|---|---|
+| `student.png` (spilleren) | 72×144 | 24×36 | Ekte grafikk. Figuren er 20 px bred, midt i ruta. |
+| `teacher.png`, `receptionist.png` | 48×96 | 16×24 | Plassholdere |
+
+`student.png` lages av `tools/student_sprite.gd` ut fra figuren designgruppa tegnet
+(forfra). Rygg, profil og gange er tegnet i samme skript som tekst-pikselkart, så det er
+lett å rette på. Lag arket på nytt med:
+
+```
+godot --headless --path . --script res://tools/student_sprite.gd
+```
+
+Bytter du til en annen rutestørrelse, må `offset` på `Sprite` i scenen justeres så føttene
+havner nederst i ruta (spilleren: `scenes/actors/player.tscn`, `offset = (0, 8 - høyde/2)`).
 Nye NPC-er: bruk `scenes/actors/npc.tscn` og sett `sheet` til et nytt ark.
 
 ## Rekvisitter – `props/*.png`
