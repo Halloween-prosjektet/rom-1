@@ -17,7 +17,7 @@ static func run(overwrite := OVERWRITE) -> Array[String]:
 	var images := {
 		"tiles/basement.png": _tiles_basement,
 		"tiles/school.png": _tiles_school,
-		"characters/student.png": func() -> Image: return _character(Color8(22, 20, 28), Color8(232, 200, 175), Color8(40, 52, 88), Color8(50, 58, 80), "student"),
+		# characters/student.png er ekte grafikk nå – lages av tools/student_sprite.gd.
 		"characters/teacher.png": func() -> Image: return _character(Color8(150, 150, 150), Color8(225, 190, 160), Color8(105, 75, 50), Color8(45, 42, 40), "teacher"),
 		"characters/receptionist.png": func() -> Image: return _character(Color8(110, 35, 30), Color8(235, 205, 180), Color8(90, 60, 110), Color8(40, 35, 45), "receptionist"),
 		"props/crate.png": _crate,

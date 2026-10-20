@@ -12,7 +12,7 @@ texture = ExtResource("2")
 hframes = 3
 vframes = 4
 frame = 1
-offset = Vector2(0, -4)
+offset = Vector2(0, -10)
 
 [node name="Camera" type="Camera2D" parent="."]
 position_smoothing_enabled = true
