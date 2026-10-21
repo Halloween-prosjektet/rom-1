@@ -31,25 +31,42 @@ den igjen får "øverste flate", resten får "topp".
 
 ## Personer – `characters/*.png`
 
-Alle personark har 3 kolonner × 4 rader:
-
-- Kolonner: steg A, stå stille, steg B
-- Rader: ned (mot kamera), venstre, høyre, opp (ryggen)
-
+Alle personark har 4 rader: ned (mot kamera), venstre, høyre, opp (ryggen).
+NPC-ene har 3 kolonner: steg A, stå stille, steg B.
 Figuren står nederst i ruta (føttene på nederste pikselrad).
 
 | Fil | Arkstørrelse | Rute | Merknad |
 |---|---|---|---|
-| `student.png` (spilleren) | 72×144 | 24×36 | Ekte grafikk. Figuren er 20 px bred, midt i ruta. |
+| `student.png` (spilleren) | 144×144 | 24×36 | Ekte grafikk, 6 kolonner (se under). Figuren er 20 px bred. |
 | `teacher.png`, `receptionist.png` | 48×96 | 16×24 | Plassholdere |
 
-`student.png` lages av `tools/student_sprite.gd` ut fra figuren designgruppa tegnet
-(forfra). Rygg, profil og gange er tegnet i samme skript som tekst-pikselkart, så det er
-lett å rette på. Lag arket på nytt med:
+### Spilleren – `student.png`
+
+Lages av `tools/student_sprite.gd` fra animasjonene designgruppa leverte, som ligger i
+`characters/student_src/` (Godot importerer ikke den mappa):
+
+| Kildefil | Innhold |
+|---|---|
+| `PlayerWalkDown/Left/Up.png` | 16 ruter à 240×135 (tegnet i 3× størrelse), 4 ulike gangtegninger |
+| `PlayerIdleAnim.png` | 12 ruter: står forfra, rute 6 er et blunk |
+| `PlayerIdleLeft.png`, `PlayerIdleUp.png` | 1 rute hver |
+
+Høyre speiles fra venstre. Kolonnene i arket:
+
+| 0 | 1 | 2–5 |
+|---|---|---|
+| står | blunk (bare forfra) | gangsyklus, to tegninger per steg |
+
+Kolonnene velges på `Player`-noden i `scenes/actors/player.tscn` (`stand_col`,
+`blink_col`, `walk_cols`, og `hframes` på `Sprite`). Får dere nye tegninger, bytt filene i
+`student_src/` (samme navn og rutestørrelse) og lag arket på nytt:
 
 ```
 godot --headless --path . --script res://tools/student_sprite.gd
 ```
+
+Åpne deretter prosjektet i Godot (eller kjør `godot --headless --path . --import`) så det
+nye arket importeres.
 
 Bytter du til en annen rutestørrelse, må `offset` på `Sprite` i scenen justeres så føttene
 havner nederst i ruta (spilleren: `scenes/actors/player.tscn`, `offset = (0, 8 - høyde/2)`).

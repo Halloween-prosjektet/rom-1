@@ -52,6 +52,12 @@ func _ready() -> void:
 	if url == "":
 		print("ControlRoom: av (CONTROL_ROOM_URL mangler, se .env.example)")
 		return
+	# Verktøyskript (godot --script ...) skal ikke logge inn som rom 1 på den ekte
+	# serveren via .env. Vil man teste, setter man CONTROL_ROOM_URL som miljøvariabel.
+	var args := OS.get_cmdline_args()
+	if ("-s" in args or "--script" in args) and OS.get_environment("CONTROL_ROOM_URL") == "":
+		print("ControlRoom: av (kjører et skript, sett CONTROL_ROOM_URL for å koble til)")
+		return
 	# Lastes dynamisk så spillet fortsatt starter hvis submodulen mangler.
 	if not ResourceLoader.exists(CLIENT_SCRIPT):
 		push_warning("ControlRoom: fant ikke %s - kjør 'git submodule update --init'" % CLIENT_SCRIPT)

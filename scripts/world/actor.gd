@@ -1,7 +1,8 @@
 class_name Actor
 extends GridEntity
 ## En person som går i rutenettet (spiller eller NPC).
-## Spriteark: 3 kolonner (steg, stå, steg) x 4 rader (ned, venstre, høyre, opp).
+## Spriteark: 4 rader (ned, venstre, høyre, opp). Antall kolonner = hframes på Sprite.
+## Standard (NPC-er): 3 kolonner (steg, stå, steg). Spilleren har flere, se player.tscn.
 
 signal stepped(cell: Vector2i)
 
@@ -20,8 +21,17 @@ const DIR_ROW := {
 @export var face_player_on_talk := true
 @export var footstep_volume_db := -999.0
 
+@export_group("Spriteark")
+## Kolonnen der figuren står stille.
+@export var stand_col := 1
+## Gangsyklusen. 2 kolonner = én tegning per steg, 4 = to per steg osv.
+@export var walk_cols: Array[int] = [0, 2]
+## Kolonne med blunk som vises av og til når figuren står stille (-1 = ingen).
+@export var blink_col := -1
+
 var facing := Vector2i.DOWN
-var _parity := false
+var _walk_i := 0
+var _blink_in := 0.0
 
 @onready var sprite: Sprite2D = $Sprite
 
@@ -31,13 +41,28 @@ func _ready() -> void:
 	if sheet:
 		sprite.texture = sheet
 	face(start_facing)
+	_blink_in = randf_range(2.0, 4.0)
+	set_process(blink_col >= 0)
+
+
+func _process(delta: float) -> void:
+	if is_moving:
+		return
+	_blink_in -= delta
+	if _blink_in > 0.0:
+		return
+	_blink_in = randf_range(2.5, 5.0)
+	_set_frame(blink_col)
+	await get_tree().create_timer(0.12).timeout
+	if not is_moving and sprite.frame == _frame_index(blink_col):
+		_set_frame(stand_col)
 
 
 func face(dir: Vector2i) -> void:
 	if dir == Vector2i.ZERO:
 		return
 	facing = dir
-	_set_frame(1)
+	_set_frame(stand_col)
 
 
 func face_towards(target: Vector2i) -> void:
@@ -49,7 +74,16 @@ func face_towards(target: Vector2i) -> void:
 
 
 func _set_frame(col: int) -> void:
-	sprite.frame = DIR_ROW.get(facing, 0) * 3 + col
+	sprite.frame = _frame_index(col)
+
+
+func _frame_index(col: int) -> int:
+	return DIR_ROW.get(facing, 0) * sprite.hframes + col
+
+
+func _next_walk_frame() -> void:
+	_set_frame(walk_cols[_walk_i % walk_cols.size()])
+	_walk_i += 1
 
 
 ## Prøver å gå én rute. Returnerer false hvis veien er blokkert.
@@ -60,14 +94,19 @@ func step(dir: Vector2i) -> bool:
 	var target := cell + dir
 	if not map.is_free(target):
 		return false
-	_parity = not _parity
-	_set_frame(0 if _parity else 2)
+	# Hvert steg viser halve gangsyklusen (minst én tegning).
+	var per_step := maxi(1, walk_cols.size() / 2)
+	_next_walk_frame()
 	if footstep_volume_db > -100.0:
 		Sfx.play("footstep", footstep_volume_db, randf_range(0.85, 1.15))
-	get_tree().create_timer(step_time * 0.55).timeout.connect(func() -> void:
-		if is_moving: _set_frame(1))
+	if per_step == 1:
+		get_tree().create_timer(step_time * 0.55).timeout.connect(func() -> void:
+			if is_moving: _set_frame(stand_col))
+	for j in range(1, per_step):
+		get_tree().create_timer(step_time * j / per_step).timeout.connect(func() -> void:
+			if is_moving: _next_walk_frame())
 	await move_to_cell(target, step_time)
-	_set_frame(1)
+	_set_frame(stand_col)
 	stepped.emit(cell)
 	return true
 
