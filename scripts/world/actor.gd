@@ -81,11 +81,6 @@ func _frame_index(col: int) -> int:
 	return DIR_ROW.get(facing, 0) * sprite.hframes + col
 
 
-func _next_walk_frame() -> void:
-	_set_frame(walk_cols[_walk_i % walk_cols.size()])
-	_walk_i += 1
-
-
 ## Prøver å gå én rute. Returnerer false hvis veien er blokkert.
 func step(dir: Vector2i) -> bool:
 	if is_moving:
@@ -94,21 +89,39 @@ func step(dir: Vector2i) -> bool:
 	var target := cell + dir
 	if not map.is_free(target):
 		return false
-	# Hvert steg viser halve gangsyklusen (minst én tegning).
+	# Hvert steg viser halve gangsyklusen (minst én tegning). Tegningen velges ut fra
+	# hvor langt i steget figuren har kommet, så den følger bevegelsen også når
+	# bildefrekvensen er lav.
 	var per_step := maxi(1, walk_cols.size() / 2)
-	_next_walk_frame()
+	var first := _walk_i
+	_walk_i += per_step
+	_step_frame(0.0, first, per_step)
 	if footstep_volume_db > -100.0:
 		Sfx.play("footstep", footstep_volume_db, randf_range(0.85, 1.15))
-	if per_step == 1:
-		get_tree().create_timer(step_time * 0.55).timeout.connect(func() -> void:
-			if is_moving: _set_frame(stand_col))
-	for j in range(1, per_step):
-		get_tree().create_timer(step_time * j / per_step).timeout.connect(func() -> void:
-			if is_moving: _next_walk_frame())
+	var anim := create_tween()
+	anim.tween_method(_step_frame.bind(first, per_step), 0.0, 1.0, step_time)
 	await move_to_cell(target, step_time)
-	_set_frame(stand_col)
+	anim.kill()
 	stepped.emit(cell)
+	_stand_when_stopped()
 	return true
+
+
+func _step_frame(progress: float, first: int, per_step: int) -> void:
+	if per_step == 1 and progress >= 0.55:
+		_set_frame(stand_col)  # 3-kolonners ark: steg, så stå
+		return
+	var k := mini(int(progress * per_step), per_step - 1)
+	_set_frame(walk_cols[(first + k) % walk_cols.size()])
+
+
+## Stå-tegningen vises først når figuren faktisk har stoppet. Går den videre, starter
+## neste steg før neste bilde tegnes, og da skal den ikke "gli" i stå-stilling imellom.
+func _stand_when_stopped() -> void:
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	if not is_moving:
+		_set_frame(stand_col)
 
 
 func walk_path(path: Array[Vector2i]) -> bool:

@@ -48,6 +48,11 @@ var _fade_layer: CanvasLayer
 var _fade: ColorRect
 var _location: Label
 var _location_tween: Tween
+## Bildefrekvens + grafikkdriver oppe til venstre. F3 slår av/på, eller
+## [display] show_fps=true i config. Viser "llvmpipe" betyr det at Pi-en tegner uten
+## grafikkort (programvare), og da blir alt tregt.
+var _fps: Label
+var _fps_timer := 0.0
 
 
 func _ready() -> void:
@@ -86,6 +91,31 @@ func _ready() -> void:
 	_location.position = Vector2(8, 240 - 34)
 	_location.modulate.a = 0.0
 	_fade_layer.add_child(_location)
+
+	_fps = Label.new()
+	_fps.add_theme_font_size_override("font_size", 8)
+	_fps.add_theme_color_override("font_color", Color(0.6, 1.0, 0.6))
+	_fps.add_theme_color_override("font_outline_color", Color.BLACK)
+	_fps.add_theme_constant_override("outline_size", 2)
+	_fps.position = Vector2(4, 2)
+	_fps.visible = Config.get_value("display", "show_fps", false)
+	_fade_layer.add_child(_fps)
+
+
+func _process(delta: float) -> void:
+	if not _fps.visible:
+		return
+	_fps_timer -= delta
+	if _fps_timer <= 0.0:
+		_fps_timer = 0.5
+		_fps.text = "%d fps  %s  %s" % [Engine.get_frames_per_second(),
+			RenderingServer.get_current_rendering_driver_name(), RenderingServer.get_video_adapter_name()]
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_F3:
+		_fps.visible = not _fps.visible
+		_fps_timer = 0.0
 
 
 func _setup_theme() -> void:

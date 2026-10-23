@@ -11,10 +11,9 @@ Laget i **Godot 4.7** (Compatibility-renderer, nødvendig for Pi 4).
 
 1. **Tittelskjerm** – en mørk kjellergang panorerer sakte bak tittelen (flimrende lysrør,
    støv, tåke og av og til noe i vinduene eller døråpningen). Trykk hva som helst – tast,
-   mus, berøring eller gamepad-knapp – for å starte. Av/på-knappen for berøringskontroller
-   nede til høyre starter ikke spillet.
-2. **Navneskjerm** – gruppa skriver inn navnet sitt (skjermtastatur med Æ/Ø/Å, vanlig
-   tastatur virker også). Navnet brukes i dialogen, på utskriften og på resultatlista.
+   mus, berøring eller gamepad-knapp – for å starte.
+2. **Navneskjerm** – gruppa skriver inn navnet sitt med tastaturet og trykker Enter.
+   Navnet brukes i dialogen, på utskriften og på resultatlista.
 3. **Intro (cutscene)** – i resepsjonen. Kameraet er zoomet inn på eleven, som tenker på
    en gave til læreren (et bilde som skal skrives ut). Skjermen deles og et minne glir inn
    fra høyre: i går feilet skriveren. Så går eleven til resepsjonen, som sier at det står en

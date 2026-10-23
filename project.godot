@@ -34,7 +34,8 @@ window/size/viewport_width=400
 window/size/viewport_height=240
 window/size/window_width_override=800
 window/size/window_height_override=480
-window/stretch/mode="canvas_items"
+window/stretch/mode="viewport"
+window/stretch/scale_mode="integer"
 
 [dotnet]
 
@@ -55,6 +56,8 @@ pointing/emulate_touch_from_mouse=true
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0
+2d/snap/snap_2d_transforms_to_pixel=true
+gl_compatibility/driver.linuxbsd="opengl3_es"
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"

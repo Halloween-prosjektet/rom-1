@@ -12,6 +12,7 @@ extends CanvasLayer
 @onready var timer_label: Label = $TimerLabel
 
 var _reset_target: Node = null
+var _timer_stopped := false
 
 
 func _ready() -> void:
@@ -29,12 +30,18 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	# Skjul kontrollene mens dialog vises.
-	var show := not Dialogue.is_open
-	dpad.modulate.a = 1.0 if show else 0.0
-	action_button.modulate.a = 1.0 if show else 0.0
+	if touch.visible:
+		var show := not Dialogue.is_open
+		dpad.modulate.a = 1.0 if show else 0.0
+		action_button.modulate.a = 1.0 if show else 0.0
 	timer_label.visible = GameState.timer_started()
-	timer_label.text = GameState.format_time(GameState.elapsed_ms())
-	if not GameState.timer_running():
+	# Teksten settes bare når tiden som vises endrer seg (ny tekst må formes på nytt,
+	# og det koster på Pi-en).
+	var text := GameState.format_time(GameState.elapsed_ms())
+	if text != timer_label.text:
+		timer_label.text = text
+	if GameState.timer_started() and not GameState.timer_running() and not _timer_stopped:
+		_timer_stopped = true
 		timer_label.add_theme_color_override("font_color", Color(0.95, 0.8, 0.35))
 
 
