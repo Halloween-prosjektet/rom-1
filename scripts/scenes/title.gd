@@ -69,6 +69,8 @@ func _ready() -> void:
 	prompt.text = Text.t("press_start")
 	Sfx.play_loop("ambience_drone", -14.0)
 	Sfx.play_loop("hum", -26.0)
+	# Knappen vises bare hvis [display] touch_toggle=true (vi bruker tastatur).
+	touch_toggle.visible = bool(Config.get_value("display", "touch_toggle", false))
 	_style_toggle()
 	touch_toggle.pressed.connect(_on_touch_toggle)
 	_update_touch_toggle()
@@ -106,7 +108,7 @@ func _input(event: InputEvent) -> void:
 	if _started or _time < INPUT_DELAY or not _is_press(event):
 		return
 	# Trykk på av/på-knappen skal ikke starte spillet.
-	if (event is InputEventScreenTouch or event is InputEventMouseButton) \
+	if touch_toggle.visible and (event is InputEventScreenTouch or event is InputEventMouseButton) \
 			and touch_toggle.get_global_rect().grow(4).has_point(event.position):
 		return
 	_start()
