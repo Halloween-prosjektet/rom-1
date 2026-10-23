@@ -3,46 +3,66 @@
 [ext_resource type="Script" path="res://scripts/scenes/intro.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/tiles/school.png" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/actors/player.tscn" id="3"]
-[ext_resource type="PackedScene" path="res://scenes/actors/npc.tscn" id="4"]
-[ext_resource type="Texture2D" path="res://assets/characters/teacher.png" id="5"]
-[ext_resource type="Texture2D" path="res://assets/characters/receptionist.png" id="6"]
-[ext_resource type="PackedScene" path="res://scenes/props/printer_broken.tscn" id="7"]
-[ext_resource type="PackedScene" path="res://scenes/props/locked_door.tscn" id="8"]
+[ext_resource type="Texture2D" path="res://assets/intro/reception_bg.png" id="4"]
+[ext_resource type="Texture2D" path="res://assets/intro/cabinet.png" id="5"]
+[ext_resource type="Texture2D" path="res://assets/intro/plant_pot.png" id="6"]
+[ext_resource type="Texture2D" path="res://assets/intro/wall_art.png" id="7"]
+[ext_resource type="Texture2D" path="res://assets/intro/reception.png" id="8"]
+[ext_resource type="Texture2D" path="res://assets/intro/receptionist.png" id="9"]
+[ext_resource type="Texture2D" path="res://assets/intro/stairs.png" id="10"]
 
 [node name="Intro" type="Node2D"]
 script = ExtResource("1")
 map_file = "res://data/maps/intro.txt"
 tile_atlas = ExtResource("2")
-ambient_color = Color(0.5, 0.5, 0.56, 1)
+draw_tiles = false
+ambient_color = Color(0.82, 0.8, 0.86, 1)
 ambience_sound = "hum"
-ambience_volume_db = -14.0
-location_key = "location_school"
+ambience_volume_db = -16.0
+location_key = "location_reception"
+
+[node name="Background" type="Sprite2D" parent="."]
+z_index = -20
+texture = ExtResource("4")
+centered = false
+
+[node name="Wall" type="Node2D" parent="."]
+z_index = -15
+
+[node name="Cabinet" type="Sprite2D" parent="Wall"]
+position = Vector2(26, 14)
+texture = ExtResource("5")
+centered = false
+
+[node name="PlantPot" type="Sprite2D" parent="Wall"]
+position = Vector2(80, 33)
+texture = ExtResource("6")
+centered = false
+
+[node name="WallArt" type="Sprite2D" parent="Wall"]
+position = Vector2(110, 9)
+texture = ExtResource("7")
+centered = false
+
+[node name="Reception" type="Sprite2D" parent="Wall"]
+position = Vector2(174, 0)
+texture = ExtResource("8")
+centered = false
+
+[node name="Receptionist" type="Sprite2D" parent="Wall"]
+position = Vector2(247, 36)
+texture = ExtResource("9")
+centered = false
+
+[node name="Stairs" type="Sprite2D" parent="Wall"]
+position = Vector2(265, 0)
+texture = ExtResource("10")
+centered = false
 
 [node name="Entities" type="Node2D" parent="."]
 y_sort_enabled = true
 
 [node name="Player" parent="Entities" instance=ExtResource("3")]
-position = Vector2(104, 120)
+position = Vector2(200, 152)
 controlled = false
-start_facing = Vector2i(0, -1)
-
-[node name="Teacher" parent="Entities" instance=ExtResource("4")]
-position = Vector2(104, 56)
-sheet = ExtResource("5")
-
-[node name="Receptionist" parent="Entities" instance=ExtResource("4")]
-position = Vector2(600, 72)
-sheet = ExtResource("6")
-
-[node name="Printer1" parent="Entities" instance=ExtResource("7")]
-position = Vector2(152, 200)
-
-[node name="Printer2" parent="Entities" instance=ExtResource("7")]
-position = Vector2(328, 200)
-
-[node name="Printer3" parent="Entities" instance=ExtResource("7")]
-position = Vector2(456, 200)
-
-[node name="BasementDoor" parent="Entities" instance=ExtResource("8")]
-position = Vector2(696, 216)
-required_item = ""
+start_facing = Vector2i(0, 1)

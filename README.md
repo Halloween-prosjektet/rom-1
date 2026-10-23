@@ -15,8 +15,11 @@ Laget i **Godot 4.7** (Compatibility-renderer, nødvendig for Pi 4).
    nede til høyre starter ikke spillet.
 2. **Navneskjerm** – gruppa skriver inn navnet sitt (skjermtastatur med Æ/Ø/Å, vanlig
    tastatur virker også). Navnet brukes i dialogen, på utskriften og på resultatlista.
-3. **Intro (cutscene)** – læreren ber deg skrive ut et dokument. Alle skriverne er ødelagte.
-   Resepsjonen sier at det står en skriver som virker i kjelleren.
+3. **Intro (cutscene)** – i resepsjonen. Kameraet er zoomet inn på eleven, som tenker på
+   en gave til læreren (et bilde som skal skrives ut). Skjermen deles og et minne glir inn
+   fra høyre: i går feilet skriveren. Så går eleven til resepsjonen, som sier at det står en
+   skriver som virker i kjelleren, og ned trappa. Rommet er tegnet av designgruppa
+   (se `assets/README.md`).
 4. **Etasje -1** – klokka oppe til høyre starter når man kommer ned. Mørke ganger,
    flimrende lys, et lager med kasser som må dyttes unna (dytte-gåte med knappen
    "Tilbakestill rommet") og et helt mørkt arkiv. Døra til skriverrommet lyser innerst i

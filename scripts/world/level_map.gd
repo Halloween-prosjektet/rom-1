@@ -38,6 +38,9 @@ const SOLID_TILES := "# ="
 
 @export_file("*.txt") var map_file := ""
 @export var tile_atlas: Texture2D
+## Av: rommet er tegnet som ett bakgrunnsbilde i scenen (introen), og kartet brukes
+## bare til hvor man kan gå.
+@export var draw_tiles := true
 ## Mørket over hele nivået (CanvasModulate). Lys legges oppå.
 @export var ambient_color := Color(0.12, 0.12, 0.15)
 @export var ambience_sound := ""
@@ -72,7 +75,8 @@ func _ready() -> void:
 	add_child(_canvas_modulate)
 
 	_load_map()
-	_build_tiles()
+	if draw_tiles:
+		_build_tiles()
 	_setup_astar()
 	_spawn_props()
 	for n in get_tree().get_nodes_in_group("grid_entity"):

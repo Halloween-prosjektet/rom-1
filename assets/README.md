@@ -29,6 +29,35 @@ Bruk PNG med gjennomsiktig bakgrunn. Ikke bruk kantutjevning (antialiasing).
 Veggene tegnes automatisk: en vegg rett over gulv får "nederste flate", veggen over
 den igjen får "øverste flate", resten får "topp".
 
+`school.png` brukes nå bare i minnet i introen (skriveren i går).
+
+## Introen – `intro/`
+
+Resepsjonen og trappa ned til kjelleren, laget fra illustrasjonen designgruppa tegnet:
+`intro/source/reception_illustration.webp` (240×135, skalert opp ~3,5×). Godot importerer
+ikke `source/`-mappa. `tools/intro_art.gd` finner de ekte pikslene igjen, skjærer ut delene
+og bygger rommet (400×240, én skjerm) rundt illustrasjonen:
+
+| Fil | Størrelse | Innhold |
+|---|---|---|
+| `reception_bg.png` | 400×240 | Vegg, flisgulv og teppe. Illustrasjonen står 80 px inn; vegg og gulv er forlenget til sidene med de samme mønstrene, og nederst er det grå fliser som ved inngangen |
+| `reception.png` | 92×80 | Resepsjonsvinduet (uten resepsjonisten) |
+| `receptionist.png` | 14×23 | Resepsjonisten |
+| `stairs.png` | 55×50 | Trappa ned til kjelleren |
+| `plant_pot.png`, `wall_art.png` | | Potten med ansikt og "hjernen" på veggen (pulserer i spillet) |
+| `cabinet.png` | 24×46 | Glassmonteren, tegnet etter bildet av resepsjonen |
+| `thought_bubble.png` | 60×16 | Tankeboble, 3 ruter (. .. ...) |
+
+Lag filene på nytt (f.eks. etter en ny versjon av illustrasjonen):
+
+```
+godot --headless --path . --script res://tools/intro_art.gd
+```
+
+Plasseringene står øverst i skriptet (`OFS`, `R_*`) og må stemme med nodene under `Wall`
+i `scenes/intro/intro.tscn`. Hvor man kan gå står i `data/maps/intro.txt`
+(scenen tegner ingen tiles, bare bakgrunnsbildet).
+
 ## Personer – `characters/*.png`
 
 Alle personark har 4 rader: ned (mot kamera), venstre, høyre, opp (ryggen).
